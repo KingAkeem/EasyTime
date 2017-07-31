@@ -1,10 +1,10 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
+from pyvirtualdisplay import Display
 from time import sleep
 
 # Creates a Chrome browser instance and opens Login page
-browser = webdriver.Chrome('C:\\Users\Honors Student\Desktop\chromedriver.exe')
+browser = webdriver.Chrome('/Users/Nieceyyyy/Downloads/chromedriver')
 browser.get('https://www.coastal.edu/scs/employee')
 
 # Finding input elements for username and password
@@ -39,6 +39,8 @@ time_info = dict()
 
 # Loops through time_card and serializes information into dictionary containing relevant information
 for text in time_card.text.splitlines()[1:-1]:
+
+
     line = text.split()
     firstName = line[0]
     lastName = line[1]
@@ -57,12 +59,12 @@ for text in time_card.text.splitlines()[1:-1]:
         'Hours': hours
     })
     except KeyError:
-        time_info[specDate] = {
+        time_info[specDate] = [{
         'Name': firstName + " " + lastName,
         'Time-In': timeIn,
         'Time-Out': timeOut,
         'Location': location,
         'Hours': hours
-    }
+    }]
 
-    print(time_info['2017-07-20'])
+
