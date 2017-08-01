@@ -1,7 +1,9 @@
+import EmpLogin
+
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from pyvirtualdisplay import Display
 from time import sleep
+
 
 # Creates a Chrome browser instance and opens Login page
 browser = webdriver.Chrome('/Users/Nieceyyyy/Downloads/chromedriver')
@@ -11,9 +13,9 @@ browser.get('https://www.coastal.edu/scs/employee')
 uname = browser.find_element_by_id('uname')
 pword = browser.find_element_by_id('pnum')
 
-# Getting username and password from user input
-username = input("What is your username? ")
-password = input("What is your password? ")
+# Getting username and password
+username = EmpLogin.username
+password = EmpLogin.password
 
 # Sending keys to elements
 uname.send_keys(username)
@@ -68,3 +70,45 @@ for text in time_card.text.splitlines()[1:-1]:
     }]
 
 
+# Opening WebAdvisor
+browser.get('https://webadvisor.coastal.edu')
+links = browser.find_elements_by_tag_name('a')
+
+# Creates dictionary of urls to page tabs
+page_urls = {}
+for link in links:
+    page_urls[link.text] = link.get_attribute('href')
+
+# Opens Log In page
+browser.get(page_urls['Log In'])
+
+# Finds input elements for username and password
+USER_NAME = browser.find_element_by_id('USER_NAME')
+CURR_PWD = browser.find_element_by_id('CURR_PWD')
+
+# Getting username and password
+username = EmpLogin.username
+password = EmpLogin.password
+
+# Sends username and password to form
+USER_NAME.send_keys(username)
+CURR_PWD.send_keys(password)
+
+
+# Submits form
+browser.find_element_by_xpath("//input[@type='submit' and @value='SUBMIT']").click()
+
+
+emp_console = browser.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
+
+browser.get(emp_console)
+
+sub_menu = browser.find_elements_by_class_name('submenu')
+menu = {}
+
+for item in sub_menu:
+    menu[item.text] =item.get_attribute('href')
+
+browser.get(menu['Time Entry'])
+
+browser.close()
