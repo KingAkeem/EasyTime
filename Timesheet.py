@@ -14,7 +14,7 @@ from time import sleep
 
 
 # Creates a Chrome browser instance and opens Login page
-browser = webdriver.Chrome('C:\\Users\Honors Student\Desktop\chromedriver')
+browser = webdriver.Chrome('/Users/Nieceyyyy/Downloads/chromedriver')
 browser.get(EmpLogin.oldconsoleurl)
 
 # Finding input elements for username and password
@@ -147,11 +147,14 @@ start = date(datetime.now().year, start_month, start_day)
 end = date(datetime.now().year, end_month, end_day)
 dates = date_range(start,end,freq='D').tolist()
 
-print(type(dates), type(dates[0]))
-for curr_date in dates:
+# Converting Timestamps to strings and then removes hours,seconds, and minutes from string
+dates = [str(x) for x in dates]
+dates = [x.replace(' 00:00:00','') for x in dates]
 
-    if curr_date in time_card:
-        print(time_card[curr_date])
+
+for curr_date in dates:
+    if curr_date in time_info:
+        print(time_info[curr_date])
 
 browser.close() # Closing Webdriver Instance
 
