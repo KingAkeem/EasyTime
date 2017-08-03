@@ -4,6 +4,10 @@ import EmpLogin
 from datetime import date, timedelta, datetime
 from pandas import date_range
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep
 
@@ -30,16 +34,16 @@ browser.find_element_by_xpath("//input[@type='submit' and @value='Submit']").cli
 
 # Finds hours between pay periods through date picker using from and to dates
 from_date = browser.find_element_by_id('from')
-ActionChains(browser).move_to_element(from_date).click().send_keys('2017-07-20').perform()
+ActionChains(browser).move_to_element(from_date).click().send_keys('2017-08-01').perform()
 to_date = browser.find_element_by_id('to')
-ActionChains(browser).move_to_element(to_date).click().send_keys('2017-07-30').perform()
+ActionChains(browser).move_to_element(to_date).click().send_keys('2017-08-02').perform()
 submit_btn = browser.find_element_by_id('Submit')
 ActionChains(browser).move_to_element(submit_btn).click().click().perform()
+
 
 # Getting JavaScript generated html
 sleep(5)
 time_card = browser.execute_script("return document.getElementById('reportContent')")
-
 time_info = dict()
 
 # Loops through time_card and serializes information into dictionary containing relevant information
@@ -71,8 +75,7 @@ for text in time_card.text.splitlines()[1:-1]:
         'Location': location,
         'Hours': hours
     }]
-
-
+print(time_info)
 # Opening WebAdvisor
 browser.get(EmpLogin.webadvisor)
 links = browser.find_elements_by_tag_name('a')
@@ -142,9 +145,13 @@ end_month, end_day, end_year = map(int,end_date.split('/'))
 # Checking to see if correct range of dates is being produced using Pandas date_range
 start = date(datetime.now().year, start_month, start_day)
 end = date(datetime.now().year, end_month, end_day)
-dates = date_range(start,end,freq='D')
-print(dates[1])
+dates = date_range(start,end,freq='D').tolist()
 
+print(type(dates), type(dates[0]))
+for curr_date in dates:
+
+    if curr_date in time_card:
+        print(time_card[curr_date])
 
 browser.close() # Closing Webdriver Instance
 
