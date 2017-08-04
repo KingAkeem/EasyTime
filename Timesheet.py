@@ -10,12 +10,29 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 def employee_menu(browser_obj):
+    """
+    Gives url for Employee menu from Webadvisor homepage
+
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return: URL for employee menu from Webadvisor homepage
+    """
 
     # Gets URL for employee console using class name
     return browser_obj.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
 
 
 def fill_timesheet(browser_obj, *, first_date, last_date):
+    """
+    Void method that fills timesheet using the first and last date to generate the payperiod dates then looping through
+    those dates and inserting the times of the ones that I have worked
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param first_date: First date of the payperiod
+    :param last_date: Last date of the payperiod
+    :return: None
+    """
+
     # Splits dates into int value of month, day and year
     start_month, start_day, start_year = map(int, first_date.split('/'))
     end_month, end_day, end_year = map(int, last_date.split('/'))
@@ -53,6 +70,12 @@ def fill_timesheet(browser_obj, *, first_date, last_date):
 
 
 def find_login(browser_obj):
+    """
+    Goes through urls on page tabs and then finds the one for the Login page
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return: URL for Webadvisor login page
+    """
 
     # Creates dictionary of urls to page tabs
     links = browser_obj.find_elements_by_tag_name('a')
@@ -64,6 +87,17 @@ def find_login(browser_obj):
 
 
 def get_info(unformatted_time):
+    """
+    Takes html from shift reports and serializes it into a more useful data structure. Creates a structure that contains
+    dictionaries inside of list inside of dictionaries. The main dictionary contains dates as keys and the values are
+    lists that contain dictionaries with useful names as keys/values. For example, if the user worked on '1999-19-09'
+    and the user's name is 'John Doe' and their location was 'Paradise Island". An element inside of the dict would look
+    like {'1999-19-09':[{'Name':'John Doe', 'Location':'Paradise Island'}]}.
+
+
+    :param unformatted_time: Pure html containing shift reports
+    :return: Dictionary containing list of dictionaries with relevant information
+    """
     
     formatted_time = dict()
     # Loops through time_card and serializes information into dictionary containing relevant information
