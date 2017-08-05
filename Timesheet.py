@@ -95,7 +95,7 @@ def get_info(unformatted_time):
     like {'1999-19-09':[{'Name':'John Doe', 'Location':'Paradise Island'}]}.
 
 
-    :param unformatted_time: Pure html containing shift reports
+    :param unformatted_time: HTML source code containing shift information
     :return: Dictionary containing list of dictionaries with relevant information
     """
     
@@ -139,6 +139,16 @@ def get_info(unformatted_time):
 
 
 def get_dates(browser_obj, *, date_start, date_end):
+    """
+    Void method that sends start and end dates to datepicker to allow you to pull up a report containing all the shifts
+    between the two dates
+
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param date_start: Start date of shifts you want to see
+    :param date_end: Lsat day of shifts you want to see
+    :return: None
+    """
 
     # Finds hours between pay periods through date picker using from and to dates
     from_date = browser_obj.find_element_by_id('from')
@@ -148,6 +158,13 @@ def get_dates(browser_obj, *, date_start, date_end):
 
 
 def get_shifts(browser_obj):
+    """
+    Expicitly waits for JavaScript to generate shift content
+
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return: HTML source code containing shifts
+    """
 
     # Getting JavaScript generated html
     wait = WebDriverWait(browser_obj, 10)
@@ -156,7 +173,15 @@ def get_shifts(browser_obj):
 
 
 def recent_payperiod(browser_obj):
+    """
+    Finds first and late date of most recent payperiod by ID and checks box to send you to the time entry page to input
+    times
 
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return begin_date: First date of payperiod
+    :return final_date: Last date of payperiod
+
+    """
     # Checks most recent payperiod box and start/end dates of payperiod
     browser_obj.find_element_by_id('LIST_VAR1_1').click()
     begin_date = browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text
@@ -166,6 +191,13 @@ def recent_payperiod(browser_obj):
 
 
 def entry_options(browser_obj, *, usr_option):
+    """
+    Takes URLs from Time entry menu and puts them into a dictionary
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param usr_option: Option that user wants URL of
+    :return: URL of option chosen by user
+    """
 
     browser_obj.find_element_by_class_name('left').find_elements_by_tag_name('a')  # Finds urls for time entry options
 
@@ -181,6 +213,14 @@ def entry_options(browser_obj, *, usr_option):
 
 
 def entry_menu(browser_obj, *, option):
+    """
+    Puts options of submenu into a dictionary
+
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param option: option that user wants the URL to
+    :return: URL of chosen option
+    """
 
     # Finds all elements of the submenu and creates an empty dictionary to store their name and url
     sub_menu = browser_obj.find_elements_by_class_name('submenu')
@@ -194,6 +234,14 @@ def entry_menu(browser_obj, *, option):
 
 
 def login_info(browser_obj, *, username, password):
+    """
+    Void method that inputs username and password for employee console/webadvisor
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param username: User's login username
+    :param password: User's login password
+    :return: None
+    """
     try:
         # Finding input elements for username and password
         uname = browser_obj.find_element_by_id('uname')
@@ -214,6 +262,12 @@ def login_info(browser_obj, *, username, password):
 
 
 def submit(browser_obj):
+    """
+    Hits submit button at current browser page
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return: None
+    """
 
     try:
         browser_obj.find_element_by_xpath("//input[@type='submit' and @value='SUBMIT']").click()
@@ -228,21 +282,29 @@ def submit(browser_obj):
 
 
 def submit_timesheet(browser_obj, *, finalized):
+    """
+    Void methoat that submits timesheet and checkboxa to finalize it depending on input
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param finalized: Whether or not to officially send Timesheet in
+    :return: None
+    """
 
     if finalized == 'Yes' or finalized == 'Y' or finalized == 'y':
         browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
 
     submit(browser_obj)
 
+
 if __name__ == '__main__':
+
     try:
-        browser = webdriver.Chrome('C:\\Users\\Honors Student\Desktop\chromedriver')  # Creates a Chrome browser instance
+        browser = webdriver.Chrome('/Users/Nieceyyyy/Downloads/chromedriver')  # Creates a Chrome browser instance
         browser.get(EmpLogin.emp_login)  # Opens Employee Console login page
 
         login_info(browser, username=EmpLogin.username, password=EmpLogin.password)  # Fills in login information
         submit(browser)  # Submits form
 
-        get_dates(browser, date_start='2017-07-30', date_end='2017-08-04')  # Retrieves unformatted information of shifts
+        get_dates(browser, date_start='2017-07-30', date_end='2017-08-04')  # Retrieves unformatted shift information
         submit(browser)  # Submits form
 
         time_card = get_shifts(browser)  # Returns unformatted html text of shifts
@@ -268,6 +330,6 @@ if __name__ == '__main__':
         submit(browser)  # Submits form
 
         fill_timesheet(browser, first_date=start_date, last_date=end_date)  # Fills out timesheet
-        submit_timesheet(browser, finalized='N') # Submits final version of timesheet or just updates it
+        submit_timesheet(browser, finalized='N')  # Submits final version of timesheet or just updates it
     finally:
         browser.quit()  # Closing Webdriver Instance
