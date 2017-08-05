@@ -7,16 +7,32 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
-from time import sleep
 
 
 def employee_menu(browser_obj):
+    """
+    Gives url for Employee menu from Webadvisor homepage
+
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return: URL for employee menu from Webadvisor homepage
+    """
 
     # Gets URL for employee console using class name
     return browser_obj.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
 
 
 def fill_timesheet(browser_obj, *, first_date, last_date):
+    """
+    Void method that fills timesheet using the first and last date to generate the payperiod dates then looping through
+    those dates and inserting the times of the ones that I have worked
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :param first_date: First date of the payperiod
+    :param last_date: Last date of the payperiod
+    :return: None
+    """
+
     # Splits dates into int value of month, day and year
     start_month, start_day, start_year = map(int, first_date.split('/'))
     end_month, end_day, end_year = map(int, last_date.split('/'))
@@ -39,10 +55,27 @@ def fill_timesheet(browser_obj, *, first_date, last_date):
                 time_in.send_keys(time_info[curr_date][0]['Time-In'])
                 time_out.send_keys(time_info[curr_date][0]['Time-Out'])
 
+            if len(time_info[curr_date]) == 2:
+                time_in = browser_obj.find_element_by_id('LIST_VAR4_' + str(index))
+                time_out = browser_obj.find_element_by_id('LIST_VAR5_' + str(index))
+                time_in.send_keys(time_info[curr_date][0]['Time-In'])
+                time_out.send_keys(time_info[curr_date][0]['Time-Out'])
+
+                time_in = browser_obj.find_element_by_id('LIST_VAR4_' + str(index+1))
+                time_out = browser_obj.find_element_by_id('LIST_VAR5_' + str(index+1))
+                time_in.send_keys(time_info[curr_date][1]['Time-In'])
+                time_out.send_keys(time_info[curr_date][1]['Time-Out'])
+
         index += 2
 
 
 def find_login(browser_obj):
+    """
+    Goes through urls on page tabs and then finds the one for the Login page
+
+    :param browser_obj: Current Selenium Chromedriver instance in use
+    :return: URL for Webadvisor login page
+    """
 
     # Creates dictionary of urls to page tabs
     links = browser_obj.find_elements_by_tag_name('a')
@@ -54,21 +87,41 @@ def find_login(browser_obj):
 
 
 def get_info(unformatted_time):
+    """
+    Takes html from shift reports and serializes it into a more useful data structure. Creates a structure that contains
+    dictionaries inside of list inside of dictionaries. The main dictionary contains dates as keys and the values are
+    lists that contain dictionaries with useful names as keys/values. For example, if the user worked on '1999-19-09'
+    and the user's name is 'John Doe' and their location was 'Paradise Island". An element inside of the dict would look
+    like {'1999-19-09':[{'Name':'John Doe', 'Location':'Paradise Island'}]}.
+
+
+    :param unformatted_time: Pure html containing shift reports
+    :return: Dictionary containing list of dictionaries with relevant information
+    """
     
     formatted_time = dict()
     # Loops through time_card and serializes information into dictionary containing relevant information
     for text in unformatted_time.text.splitlines()[1:-1]:
         line = text.split()
-        first_name = line[0]
-        last_name = line[1]
-        spec_date = line[2]
-        clock_in = line[3]
-        clock_out = line[5]
-        location = line[6] + " " + line[7]
-        hours = line[8]
+        if len(line) == 9:
+            name = line[0] + ' ' + line[1]
+            spec_date = line[2]
+            clock_in = line[3]
+            clock_out = line[5]
+            location = line[6] + ' ' + line[7]
+            hours = line[8]
+
+        if len(line) == 8:
+            name = line[0] + ' ' + line[1]
+            spec_date = line[2]
+            clock_in = line[3]
+            clock_out = line[5]
+            location = line[6]
+            hours = line[7]
+
         try:
             formatted_time[spec_date].append({
-                'Name': first_name + " " + last_name,
+                'Name': name,
                 'Time-In': clock_in,
                 'Time-Out': clock_out,
                 'Location': location,
@@ -76,7 +129,7 @@ def get_info(unformatted_time):
             })
         except KeyError:
             formatted_time[spec_date] = [{
-                'Name': first_name + " " + last_name,
+                'Name': name,
                 'Time-In': clock_in,
                 'Time-Out': clock_out,
                 'Location': location,
@@ -106,8 +159,8 @@ def recent_payperiod(browser_obj):
 
     # Checks most recent payperiod box and start/end dates of payperiod
     browser_obj.find_element_by_id('LIST_VAR1_1').click()
-    begin_date = browser.find_element_by_id('DATE_LIST_VAR1_1').text
-    final_date = browser.find_element_by_id('DATE_LIST_VAR2_1').text
+    begin_date = browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text
+    final_date = browser_obj.find_element_by_id('DATE_LIST_VAR2_1').text
 
     return begin_date, final_date
 
@@ -171,46 +224,50 @@ def submit(browser_obj):
             try:
                 browser_obj.find_element_by_xpath("//input[@type='button' and @value='Submit']").click()
             except NoSuchElementException:
-                try:
-                    browser_obj.find_element_by_xpath("//input[@type='button' and @value='SUBMIT']").click()
-                except NoSuchElementException:
-                    print('Could not click submit button!')
+                print('Could not click submit button!')
 
 
+def submit_timesheet(browser_obj, *, finalized):
+
+    if finalized == 'Yes' or finalized == 'Y' or finalized == 'y':
+        browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
+
+    submit(browser_obj)
 
 if __name__ == '__main__':
+    try:
+        browser = webdriver.Chrome('C:\\Users\\Honors Student\Desktop\chromedriver')  # Creates a Chrome browser instance
+        browser.get(EmpLogin.emp_login)  # Opens Employee Console login page
 
-    browser = webdriver.Chrome('//Users/Nieceyyyy/Downloads/chromedriver')  # Creates a Chrome browser instance
-    browser.get(EmpLogin.emp_login)  # Opens Employee Console login page
+        login_info(browser, username=EmpLogin.username, password=EmpLogin.password)  # Fills in login information
+        submit(browser)  # Submits form
 
-    login_info(browser, username=EmpLogin.username, password=EmpLogin.password)  # Fills in login information
-    submit(browser)  # Submits form
+        get_dates(browser, date_start='2017-07-30', date_end='2017-08-04')  # Retrieves unformatted information of shifts
+        submit(browser)  # Submits form
 
-    get_dates(browser, date_start='2017-08-01', date_end='2017-08-03')  # Retrieves unformatted information of shifts
-    submit(browser)  # Submits form
+        time_card = get_shifts(browser)  # Returns unformatted html text of shifts
+        time_info = get_info(time_card)  # Formats shifts into usable data structure
 
-    time_card = get_shifts(browser)  # Returns unformatted html text of shifts
-    time_info = get_info(time_card)  # Formats shifts into usable data structure
+        browser.get(EmpLogin.webadvisor_home)  # Opens Webadvisor home page
+        webadvisor_login = find_login(browser)  # Gets login page for Webadvisor
+        browser.get(webadvisor_login)  # Opens Webadvisor login page
 
-    browser.get(EmpLogin.webadvisor_home)  # Opens Webadvisor home page
-    webadvisor_login = find_login(browser)  # Gets login page for Webadvisor
-    browser.get(webadvisor_login)  # Opens Webadvisor login page
+        login_info(browser, username=EmpLogin.username, password=EmpLogin.password)  # Fills in login information
+        submit(browser)  # Submits form
 
-    login_info(browser, username=EmpLogin.username, password=EmpLogin.password)  # Fills in login information
-    submit(browser)  # Submits form
+        emp_menu = employee_menu(browser)  # Retrieves URL for employee menu
+        browser.get(emp_menu)  # Opens employee menu page of Webadvisor
 
-    emp_menu = employee_menu(browser)  # Retrieves URL for employee menu
-    browser.get(emp_menu)  # Opens employee menu page of Webadvisor
+        time_menu = entry_menu(browser, option='Time Entry')  # Gets options and returns whichever option is chosen
+        browser.get(time_menu)  # Opens Time Entry menu
 
-    time_menu = entry_menu(browser, option='Time Entry')  # Gets options and returns whichever option is chosen
-    browser.get(time_menu)  # Opens Time Entry menu
+        entry_page = entry_options(browser, usr_option='Time entry')  # Gets url for time entry page
+        browser.get(entry_page)  # Opens time entry page to select payperiod
 
-    entry_page = entry_options(browser, usr_option='Time entry')  # Gets url for time entry page
-    browser.get(entry_page)  # Opens time entry page to select payperiod
+        start_date, end_date = recent_payperiod(browser)  # Checks most recent payperiod and start/end dates
+        submit(browser)  # Submits form
 
-    start_date, end_date = recent_payperiod(browser)  # Gets start/end date of most recent payperiod
-    submit(browser)  # Submits form
-
-    fill_timesheet(browser, first_date=start_date, last_date=end_date)  # Fills out timesheet
-    browser.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
-    #submit(browser) # Submits timesheet
+        fill_timesheet(browser, first_date=start_date, last_date=end_date)  # Fills out timesheet
+        submit_timesheet(browser, finalized='N') # Submits final version of timesheet or just updates it
+    finally:
+        browser.quit()  # Closing Webdriver Instance
