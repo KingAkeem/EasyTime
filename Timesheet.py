@@ -7,6 +7,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
+from time import sleep
 
 
 def employee_menu(browser_obj):
@@ -170,12 +171,16 @@ def submit(browser_obj):
             try:
                 browser_obj.find_element_by_xpath("//input[@type='button' and @value='Submit']").click()
             except NoSuchElementException:
-                print('Could not click submit button!')
+                try:
+                    browser_obj.find_element_by_xpath("//input[@type='button' and @value='SUBMIT']").click()
+                except NoSuchElementException:
+                    print('Could not click submit button!')
+
 
 
 if __name__ == '__main__':
 
-    browser = webdriver.Chrome('C:\\Users\\bicuser\Downloads\chromedriver')  # Creates a Chrome browser instance
+    browser = webdriver.Chrome('//Users/Nieceyyyy/Downloads/chromedriver')  # Creates a Chrome browser instance
     browser.get(EmpLogin.emp_login)  # Opens Employee Console login page
 
     login_info(browser, username=EmpLogin.username, password=EmpLogin.password)  # Fills in login information
@@ -203,10 +208,9 @@ if __name__ == '__main__':
     entry_page = entry_options(browser, usr_option='Time entry')  # Gets url for time entry page
     browser.get(entry_page)  # Opens time entry page to select payperiod
 
-    start_date, end_date = recent_payperiod(browser)  # Checks most recent payperiod and start/end dates of payperiod
+    start_date, end_date = recent_payperiod(browser)  # Gets start/end date of most recent payperiod
     submit(browser)  # Submits form
 
     fill_timesheet(browser, first_date=start_date, last_date=end_date)  # Fills out timesheet
     browser.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
-    # submit(browser) # Submits timesheet
-    browser.close()  # Closing Webdriver Instance
+    #submit(browser) # Submits timesheet
