@@ -151,8 +151,11 @@ def get_dates(browser_obj, *, date_start, date_end):
     """
 
     # Finds hours between pay periods through date picker using from and to dates
+    wait = WebDriverWait(browser_obj, 10)
+    wait.until(expected_conditions.presence_of_all_elements_located((By.ID,'from')))
     from_date = browser_obj.find_element_by_id('from')
     ActionChains(browser_obj).move_to_element(from_date).click().send_keys(date_start).perform()
+    wait.until(expected_conditions.presence_of_all_elements_located((By.ID,'to')))
     to_date = browser_obj.find_element_by_id('to')
     ActionChains(browser_obj).move_to_element(to_date).click().send_keys(date_end).perform()
 
@@ -269,32 +272,59 @@ def submit(browser_obj):
     :return: None
     """
 
-    try:
-        btn = WebDriverWait(browser_obj, 10).until(
-            expected_conditions.visibility_of_element_located((
-                By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
-            )
-        )
-        btn.click()
-    except (NoSuchElementException, TimeoutException):
+    if 'webadvisor' not in browser_obj.current_url:
         try:
-            btn = WebDriverWait(browser_obj, 10).until(
+            btn = WebDriverWait(browser_obj, 5).until(
                 expected_conditions.visibility_of_element_located((
                     By.XPATH, "//input[@type='submit' and @value='Submit']")
                 )
             )
             btn.click()
         except (NoSuchElementException, TimeoutException):
+
+            btn = WebDriverWait(browser_obj, 5).until(
+                expected_conditions.visibility_of_element_located((
+                    By.XPATH, "//input[@type='button' and @value='Submit']")
+                )
+            )
+            btn.click()
+    else:
+        btn = WebDriverWait(browser_obj, 5).until(
+            expected_conditions.visibility_of_element_located((
+                By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
+            )
+        )
+        btn.click()
+    """
+    try:
+        btn = WebDriverWait(browser_obj, 5).until(
+            expected_conditions.visibility_of_element_located((
+                By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
+            )
+        )
+        btn.click()
+        print("@type = 'submit' and @value = 'SUBMIT' URL:",  browser_obj.current_url)
+    except (NoSuchElementException, TimeoutException):
+        try:
+            btn = WebDriverWait(browser_obj, 5).until(
+                expected_conditions.visibility_of_element_located((
+                    By.XPATH, "//input[@type='submit' and @value='Submit']")
+                )
+            )
+            btn.click()
+            print("@type = 'submit' and @value = 'Submit' URL:", browser_obj.current_url)
+        except (NoSuchElementException, TimeoutException):
             try:
-                btn = WebDriverWait(browser_obj, 10).until(
+                btn = WebDriverWait(browser_obj, 5).until(
                     expected_conditions.visibility_of_element_located((
                         By.XPATH, "//input[@type='button' and @value='Submit']")
                     )
                 )
                 btn.click()
+                print("@type = 'button' and @value = 'Submit' URL:", browser_obj.current_url)
             except (NoSuchElementException, TimeoutException):
                 print('Could not click submit button!')
-
+    """
 
 def submit_timesheet(browser_obj, *, finalized):
     """
@@ -347,5 +377,4 @@ if __name__ == '__main__':
         fill_timesheet(browser, first_date=start_date, last_date=end_date)  # Fills out timesheet
         submit_timesheet(browser, finalized='N')  # Submits final version of timesheet or just updates it
     finally:
-        if input():
-            browser.quit()  # Closing Webdriver Instance
+        browser.quit()  # Closing Webdriver Instance
