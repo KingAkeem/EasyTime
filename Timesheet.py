@@ -1,4 +1,6 @@
 import EmpLogin
+from find_file import find_file
+import os
 from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
@@ -7,12 +9,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+from os.path import join
 
 
 class AutomateLogging:
 
     def __init__(self):
-        self.browser_obj = webdriver.Chrome('C:\\Users\Honors Student\Desktop\chromedriver')
+        driver_path = find_file('chromedriver.exe')
+        self.browser_obj = webdriver.Chrome(driver_path)
         self.browser_obj.get(EmpLogin.emp_login)
 
 
@@ -77,7 +81,6 @@ class AutomateLogging:
                     time_out.send_keys(time_info[curr_date][1]['Time-Out'])
 
             index += 2
-
 
     def find_login(self):
         """
