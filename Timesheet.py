@@ -295,36 +295,7 @@ def submit(browser_obj):
             )
         )
         btn.click()
-    """
-    try:
-        btn = WebDriverWait(browser_obj, 5).until(
-            expected_conditions.visibility_of_element_located((
-                By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
-            )
-        )
-        btn.click()
-        print("@type = 'submit' and @value = 'SUBMIT' URL:",  browser_obj.current_url)
-    except (NoSuchElementException, TimeoutException):
-        try:
-            btn = WebDriverWait(browser_obj, 5).until(
-                expected_conditions.visibility_of_element_located((
-                    By.XPATH, "//input[@type='submit' and @value='Submit']")
-                )
-            )
-            btn.click()
-            print("@type = 'submit' and @value = 'Submit' URL:", browser_obj.current_url)
-        except (NoSuchElementException, TimeoutException):
-            try:
-                btn = WebDriverWait(browser_obj, 5).until(
-                    expected_conditions.visibility_of_element_located((
-                        By.XPATH, "//input[@type='button' and @value='Submit']")
-                    )
-                )
-                btn.click()
-                print("@type = 'button' and @value = 'Submit' URL:", browser_obj.current_url)
-            except (NoSuchElementException, TimeoutException):
-                print('Could not click submit button!')
-    """
+
 
 def submit_timesheet(browser_obj, *, finalized):
     """
