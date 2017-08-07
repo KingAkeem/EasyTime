@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 
 
@@ -270,14 +270,29 @@ def submit(browser_obj):
     """
 
     try:
-        browser_obj.find_element_by_xpath("//input[@type='submit' and @value='SUBMIT']").click()
-    except NoSuchElementException:
+        btn = WebDriverWait(browser_obj, 10).until(
+            expected_conditions.visibility_of_element_located((
+                By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
+            )
+        )
+        btn.click()
+    except (NoSuchElementException, TimeoutException):
         try:
-            browser_obj.find_element_by_xpath("//input[@type='submit' and @value='Submit']").click()
-        except NoSuchElementException:
+            btn = WebDriverWait(browser_obj, 10).until(
+                expected_conditions.visibility_of_element_located((
+                    By.XPATH, "//input[@type='submit' and @value='Submit']")
+                )
+            )
+            btn.click()
+        except (NoSuchElementException, TimeoutException):
             try:
-                browser_obj.find_element_by_xpath("//input[@type='button' and @value='Submit']").click()
-            except NoSuchElementException:
+                btn = WebDriverWait(browser_obj, 10).until(
+                    expected_conditions.visibility_of_element_located((
+                        By.XPATH, "//input[@type='button' and @value='Submit']")
+                    )
+                )
+                btn.click()
+            except (NoSuchElementException, TimeoutException):
                 print('Could not click submit button!')
 
 
@@ -332,4 +347,5 @@ if __name__ == '__main__':
         fill_timesheet(browser, first_date=start_date, last_date=end_date)  # Fills out timesheet
         submit_timesheet(browser, finalized='N')  # Submits final version of timesheet or just updates it
     finally:
-        browser.quit()  # Closing Webdriver Instance
+        if input():
+            browser.quit()  # Closing Webdriver Instance
