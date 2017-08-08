@@ -1,6 +1,5 @@
 import EmpLogin
-from find_file import find_file
-import os
+from Chrome_Driver import Chrome_Driver
 from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
@@ -9,13 +8,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
-from os.path import join
 
 
 class AutomateLogging:
 
     def __init__(self):
-        driver_path = find_file('chromedriver.exe')
+        driver = Chrome_Driver()
+        driver_path = driver.find_path()
         self.browser_obj = webdriver.Chrome(driver_path)
         self.browser_obj.get(EmpLogin.emp_login)
 
