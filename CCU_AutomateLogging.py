@@ -4,6 +4,7 @@ from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -16,7 +17,6 @@ class AutomateLogging:
         driver = Chrome_Driver()
         driver_path = driver.find_path()
         self.browser_obj = webdriver.Chrome(driver_path)
-        self.browser_obj.get(EmpLogin.emp_login)
 
 
     def employee_menu(self):
@@ -58,7 +58,7 @@ class AutomateLogging:
         dates = [x.replace(' 00:00:00', '') for x in dates]
 
         index = 1
-        time_info = self.get_info()
+        time_info = self.formatted_time
 
         for curr_date in dates:
             if curr_date in time_info:
@@ -111,7 +111,7 @@ class AutomateLogging:
         :return: Dictionary containing list of dictionaries with relevant information
         """
 
-        formatted_time = dict()
+        self.formatted_time = dict()
         # Loops through time_card and serializes information into dictionary containing relevant information
         for text in self.shifts.splitlines()[1:-1]:
             line = text.split()
@@ -132,7 +132,7 @@ class AutomateLogging:
                 hours = line[7]
 
             try:
-                formatted_time[spec_date].append({
+                self.formatted_time[spec_date].append({
                     'Name': name,
                     'Time-In': clock_in,
                     'Time-Out': clock_out,
@@ -140,14 +140,14 @@ class AutomateLogging:
                     'Hours': hours
                 })
             except KeyError:
-                formatted_time[spec_date] = [{
+                self.formatted_time[spec_date] = [{
                     'Name': name,
                     'Time-In': clock_in,
                     'Time-Out': clock_out,
                     'Location': location,
                     'Hours': hours
                 }]
-        return formatted_time
+        return self.formatted_time
 
     def get_dates(self, *, date_start, date_end):
         """
@@ -169,6 +169,8 @@ class AutomateLogging:
         wait.until(expected_conditions.presence_of_all_elements_located((By.ID,'to')))
         to_date = self.browser_obj.find_element_by_id('to')
         ActionChains(self.browser_obj).move_to_element(to_date).click().send_keys(date_end).perform()
+        #curr_date = self.browser_obj.find_element_by_class_name('ui-state-default ui-state-highlight ui-state-active')
+        #ActionChains(self.browser_obj).move_to_element(curr_date).click().perform()
         self.submit()
 
     def get_shifts(self):
@@ -288,7 +290,7 @@ class AutomateLogging:
 
         if 'webadvisor' not in self.browser_obj.current_url:
             try:
-                btn = WebDriverWait(self.browser_obj, 5).until(
+                btn = WebDriverWait(self.browser_obj, 10).until(
                     expected_conditions.visibility_of_element_located((
                         By.XPATH, "//input[@type='submit' and @value='Submit']")
                     )
@@ -296,14 +298,14 @@ class AutomateLogging:
                 btn.click()
             except (NoSuchElementException, TimeoutException):
 
-                btn = WebDriverWait(self.browser_obj, 5).until(
+                btn = WebDriverWait(self.browser_obj, 10).until(
                     expected_conditions.visibility_of_element_located((
                         By.XPATH, "//input[@type='button' and @value='Submit']")
                     )
                 )
                 btn.click()
         else:
-            btn = WebDriverWait(self.browser_obj, 5).until(
+            btn = WebDriverWait(self.browser_obj, 10).until(
                 expected_conditions.visibility_of_element_located((
                     By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
                 )
@@ -326,17 +328,33 @@ class AutomateLogging:
 
 
 if __name__ == '__main__':
-
-    login_process = AutomateLogging()
-    login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)
-    login_process.get_dates(date_start='2017-07-30', date_end='2017-08-04')
-    login_process.get_shifts()
-    login_process.get_info()
-    login_process.find_login()
-    login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)
-    login_process.employee_menu()
-    login_process.entry_menu(option='Time Entry')
-    login_process.entry_options(usr_option='Time entry')
-    start_date, end_date = login_process.recent_payperiod()
-    login_process.fill_timesheet(first_date=start_date, last_date=end_date)
-    login_process.submit_timesheet(finalized='N')
+    try:
+        login_process = AutomateLogging()
+        # Getting times from webadvisor
+        login_process.browser_obj.get(EmpLogin.webadvisor_home)
+        login_process.find_login()
+        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)
+        login_process.employee_menu()
+        login_process.entry_menu(option='Time Entry')
+        login_process.entry_options(usr_option='Time entry')
+        start_date, end_date = login_process.recent_payperiod()
+        start_date = start_date[0:6] + '20' + start_date[6:8]
+        end_date = end_date[0:6] + '20' + end_date[6:8]
+        print(start_date,end_date)
+        start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%d-%m')
+        end_date = datetime.strptime(end_date, '%m/%d/%Y').strftime('%Y-%d-%m')
+        print(start_date, end_date)
+        login_process.browser_obj.get(EmpLogin.emp_login)
+        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)
+        login_process.get_dates(date_start=start_date, date_end=end_date)
+        print(login_process.get_shifts())
+        login_process.get_info()
+        login_process.find_login()
+        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)
+        login_process.employee_menu()
+        login_process.entry_menu(option='Time Entry')
+        login_process.entry_options(usr_option='Time entry')
+        login_process.fill_timesheet(first_date=start_date, last_date=end_date)
+        login_process.submit_timesheet(finalized='N')
+    finally:
+        login_process.browser_obj.quit()

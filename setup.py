@@ -2,7 +2,7 @@ from sys import platform
 from cx_Freeze import setup, Executable
 
 # Dependencies are automatically located but may need fine tuning
-build_exe_options = {'packages':['os','numpy','pandas'], 'excludes':['tkinter']}
+build_exe_options = {'packages':['os','numpy','pandas','sys'],'include_msvcr': True}
 base = None  # GUI applications require a different base on Windows
 
 if platform == 'win32':
