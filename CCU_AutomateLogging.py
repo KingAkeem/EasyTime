@@ -3,6 +3,7 @@ from Chrome_Driver import Chrome_Driver
 from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
+#  from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -296,23 +297,29 @@ class AutomateLogging:
 
 
 if __name__ == '__main__':
+
+    #  display = Display(visible=0)  # Hides browser but still gives application access
+    #  display.start()  # Starts hidden display
+    driver = Chrome_Driver()  # Finds path to Chrome Driver
+    login_process = AutomateLogging(driver.get_path())  # Creating Automated Logging object
     try:
-        driver = Chrome_Driver() # Finds path to Chrome Driver
-        login_process = AutomateLogging(driver.find_path()) # Creating Automated Logging object
-        login_process.browser_obj.get(EmpLogin.webadvisor_home) # Opening Webadvisor homepage
-        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password) # Logging in into Webadvisor
-        login_process.entry_menu(option='Time Entry') # Opening Time Entry menu
-        login_process.entry_options(usr_option='Time entry') # Choosing time entry option
-        start_date, end_date = login_process.recent_pay_period() # Getting dates from most recent payperiod
-        start_date = start_date[0:6] + '20' + start_date[6:8] # Making two digit year into four digits eg. 17 -> 2017
+        login_process.browser_obj.get(EmpLogin.webadvisor_home)  # Opening Webadvisor homepage
+        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)  # Logging in into Webadvisor
+        login_process.entry_menu(option='Time Entry')  # Opening Time Entry menu
+        login_process.entry_options(usr_option='Time entry')  # Choosing time entry option
+        start_date, end_date = login_process.recent_pay_period()  # Getting dates from most recent payperiod
+        start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
         start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d') # Formatting start date eg. Y-m-d
         login_process.browser_obj.get(EmpLogin.emp_login) # Opening Employee Console login
-        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password) # Logging into employee console
-        login_process.get_shifts(date_start=start_date, date_end=end_date) # Gets information for shifts between dates
-        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password) # Logging into Webadvisor
-        login_process.entry_menu(option='Time Entry') # Opening Time Entry Menu
-        login_process.entry_options(usr_option='Time entry') # Choosing Time Entry option
-        login_process.fill_timesheet(first_date=start_date, last_date=end_date) # Filling time sheet within date range
-        login_process.submit_timesheet(finalized='N') # Submitting timesheet
+        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)  # Logging into employee console
+        login_process.get_shifts(date_start=start_date, date_end=end_date)  # Gets information for shifts between dates
+        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)  # Logging into Webadvisor
+        login_process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
+        login_process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
+        login_process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
+        login_process.submit_timesheet(finalized='N')  # Submitting timesheet
     finally:
-        login_process.browser_obj.quit() # Closing browser
+        if login_process.browser_obj:
+            login_process.browser_obj.quit()  # Closing browser
+        #  if display:
+            #  display.stop()
