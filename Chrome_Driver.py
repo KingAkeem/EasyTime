@@ -19,8 +19,8 @@ class Chrome_Driver:
     def find_path(self):
         if self.curr_os == 'win32':
 
-            for root, dirs, files in scandir.walk("C:\\Users\\Honors Student\\"):
-                # print('searching:', root)
+            for root, dirs, files in scandir.walk("C:\\Users\\"):
+                print('searching:', root)
                 if self.driver in files:
                     driver_path = join(root, self.driver)
                     print('found:',driver_path)
