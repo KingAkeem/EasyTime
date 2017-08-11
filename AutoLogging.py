@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from Chrome_Driver import Chrome_Driver
+from chrome_driver import Chrome_Driver
 from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
@@ -157,10 +157,11 @@ class AutomateLogging:
 
         """
 
-        first_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text  # First day of pay period
-        current_day = datetime.today().strftime('%Y-%m-%d')  # Current day
+        self.first_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text  # First day of pay period
+        self.last_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR2_1').text  # Last day of pay period
+        self.current_day = datetime.today().strftime('%Y-%m-%d')  # Current day
 
-        return first_day, current_day
+        return self.first_day, self.current_day
 
     def entry_options(self, *, usr_option):
         """
@@ -207,7 +208,7 @@ class AutomateLogging:
 
         self.browser_obj.get(emp_options[option])  # opening page based on user option eg. 'Time Entry'
 
-    def login_info(self, *, username, password):
+    def login(self, *, username, password):
         """
         Void method that inputs username and password for employee console/webadvisor
 
@@ -256,8 +257,13 @@ class AutomateLogging:
         :param self: Current Selenium Chromedriver instance in use
         :return: None
         """
+        try:
+            if self.last_day == self.current_day:
+                self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
+        except AttributeError:
+            pass
 
-        # If url is not webadvisor then use one of these two submit buttons otherwise use webadvisor submit button
+       # If url is not webadvisor then use one of these two submit buttons otherwise use webadvisor submit button
         if 'webadvisor' not in self.browser_obj.current_url:
             try:
                 btn = WebDriverWait(self.browser_obj, 10).until(
@@ -282,19 +288,6 @@ class AutomateLogging:
             )
             btn.click()
 
-    def submit_timesheet(self, *, finalized):
-        """
-        Void methoat that submits timesheet and checkboxa to finalize it depending on input
-        :param self: Current Selenium Chromedriver instance in use
-        :param finalized: Whether or not to officially send Timesheet in
-        :return: None
-        """
-
-        if finalized == 'Y' or finalized == 'y':
-            self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
-
-        self.submit()
-
 
 if __name__ == '__main__':
 
@@ -305,29 +298,31 @@ if __name__ == '__main__':
     if path is None: # checks if chromedriver is present
         path = driver.download_driver() # downloads chromedriver
         path = driver.get_path() # finds new chromedriver path
-    login_process = AutomateLogging(path)  # Creating Automated Logging object
+    process = AutomateLogging(path)  # Creating Automated Logging object
     try:
-        login_process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
+        process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
         usr_name = input('What is your username? ')
         pwd = input('What is your password? ')
-        login_process.login_info(username=usr_name, password=pwd)  # Logging in into Webadvisor
-        login_process.entry_menu(option='Time Entry')  # Opening Time Entry menu
-        login_process.entry_options(usr_option='Time entry')  # Choosing time entry option
-        start_date, end_date = login_process.recent_pay_period()  # Getting dates from most recent payperiod
+        process.login(username=usr_name, password=pwd)  # Logging in into Webadvisor
+        process.entry_menu(option='Time Entry')  # Opening Time Entry menu
+        process.entry_options(usr_option='Time entry')  # Choosing time entry option
+        start_date, end_date = process.recent_pay_period()  # Getting dates from most recent payperiod
         start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
         start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
-        login_process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
-        login_process.login_info(username=usr_name, password=pwd)  # Logging into employee console
-        login_process.get_shifts(date_start=start_date, date_end=end_date)  # Gets information for shifts between dates
-        login_process.login_info(username=usr_name, password=pwd)  # Logging into Webadvisor
-        login_process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
-        login_process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
-        login_process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
-        final = input('Would you like to finalize submission? (Y/N) ')
-        login_process.submit_timesheet(finalized='final')  # Submitting timesheet
-        print('Your timesheet has been submitted successfully.')
+        process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
+        process.login(username=usr_name, password=pwd)  # Logging into employee console
+        process.get_shifts(date_start=start_date, date_end=end_date)  # Gets information for shifts between dates
+        process.login(username=usr_name, password=pwd)  # Logging into Webadvisor
+        process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
+        process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
+        process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
+        process.submit() # Submits timesheet based on date
+        if process.last_day == process.current_day:
+            print('The final revision of your timesheet has been submitted to your supervisor.')
+        else:
+            print('Your timesheet has been submitted but not finalized.')
     finally:
-        if login_process.browser_obj:
-            login_process.browser_obj.quit()  # Closing browser
+        if process.browser_obj:
+            process.browser_obj.quit()  # Closing browser
         if display:
             display.stop()  # Closing display
