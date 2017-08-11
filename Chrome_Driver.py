@@ -1,6 +1,7 @@
 import scandir
+import getpass
 from urllib import request
-from os import getlogin
+from os import getlogin, system
 from os.path import join
 from sys import platform
 from shutil import copyfileobj
@@ -37,11 +38,14 @@ class Chrome_Driver:
                     self.driver_path = join(root, self.driver)
                     print('found:',self.driver_path)
                     return self.driver_path
-"""
+
     def download_driver(self):
         url = 'https://chromedriver.storage.googleapis.com/index.html?path=2.31/'
         if self.curr_os == 'win32':
             file_name = 'C:\\Users\\' + getlogin()
             with request.urlopen(url) as response, open(file_name, 'wb') as out_file:
                 copyfileobj(response, out_file)
-"""
+
+        if self.curr_os == 'linux':
+            system('wget -N http://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip -P ~/Downloads')
+            system('7z x ~/Downloads/chromedriver_linux64.zip')

@@ -1,9 +1,10 @@
-import EmpLogin
+#! /usr/bin/env python3
+
 from Chrome_Driver import Chrome_Driver
 from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
-#  from pyvirtualdisplay import Display
+from pyvirtualdisplay import Display
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -46,8 +47,8 @@ class AutomateLogging:
         :return: None
         """
 
-        self.browser_obj.find_element_by_id('LIST_VAR1_1').click() # Clicking box to select most recent payperiod
-        self.submit() # Submitting checked box
+        self.browser_obj.find_element_by_id('LIST_VAR1_1').click()  # Clicking box to select most recent payperiod
+        self.submit()  # Submitting checked box
 
         # Splits date into a three element list and then converts each element to an int using map function
         start_year, start_month, start_day = map(int, first_date.split('-'))
@@ -58,8 +59,8 @@ class AutomateLogging:
         end = date(end_year, end_month, end_day)
         dates = date_range(start, end, freq='D').tolist()
 
-        dates = [str(x) for x in dates] # Converting each Timestamp element to a string
-        dates = [x.replace(' 00:00:00', '') for x in dates] # Removing extra time eg. second, hours and minutes
+        dates = [str(x) for x in dates]  # Converting each Timestamp element to a string
+        dates = [x.replace(' 00:00:00', '') for x in dates]  # Removing extra time eg. second, hours and minutes
 
         index = 1  # Index of first field
         time_info = self.formatted_time  # Dictionary containing shift information
@@ -85,7 +86,7 @@ class AutomateLogging:
                     time_in.send_keys(time_info[curr_date][1]['Time-In'])
                     time_out.send_keys(time_info[curr_date][1]['Time-Out'])
 
-            index += 2 # Moving to next day
+            index += 2  # Moving to next day
 
     def get_shifts(self, *, date_start, date_end):
         """
@@ -156,8 +157,8 @@ class AutomateLogging:
 
         """
 
-        first_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text # First day of pay period
-        current_day = datetime.today().strftime('%Y-%m-%d') # Current day
+        first_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text  # First day of pay period
+        current_day = datetime.today().strftime('%Y-%m-%d')  # Current day
 
         return first_day, current_day
 
@@ -180,7 +181,7 @@ class AutomateLogging:
         for option in menu_options:
             options[option.text] = option.get_attribute('href')
 
-        self.browser_obj.get(options[usr_option]) # Opens page of usr chosen option eg. 'Time entry' page
+        self.browser_obj.get(options[usr_option])  # Opens page of usr chosen option eg. 'Time entry' page
 
     def entry_menu(self, *, option):
         """
@@ -204,7 +205,7 @@ class AutomateLogging:
         for item in sub_menu:
             emp_options[item.text] = item.get_attribute('href')
 
-        self.browser_obj.get(emp_options[option]) # opening page based on user option eg. 'Time Entry'
+        self.browser_obj.get(emp_options[option])  # opening page based on user option eg. 'Time Entry'
 
     def login_info(self, *, username, password):
         """
@@ -222,10 +223,9 @@ class AutomateLogging:
                 self.browser_obj.get(self.page_urls['Log In'])
             except KeyError:
                 # Creates dictionary of urls to page tabs
-                self.browser_obj.get(EmpLogin.webadvisor_home)
+                self.browser_obj.get('https://webadvisor.coastal.edu')
                 links = self.browser_obj.find_elements_by_tag_name('a')
                 for link in links:
-                    print(link.text)
                     self.page_urls[link.text] = link.get_attribute('href')
                 self.browser_obj.get(self.page_urls['Log In'])
 
@@ -290,7 +290,7 @@ class AutomateLogging:
         :return: None
         """
 
-        if finalized == 'Yes' or finalized == 'Y' or finalized == 'y':
+        if finalized == 'Y' or finalized == 'y':
             self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
 
         self.submit()
@@ -298,28 +298,36 @@ class AutomateLogging:
 
 if __name__ == '__main__':
 
-    #  display = Display(visible=0)  # Hides browser but still gives application access
-    #  display.start()  # Starts hidden display
-    driver = Chrome_Driver()  # Finds path to Chrome Driver
-    login_process = AutomateLogging(driver.get_path())  # Creating Automated Logging object
+    display = Display(visible=0)  # Hides browser but still gives application access
+    display.start()  # Starts hidden display
+    driver = Chrome_Driver()  # Creates a driver
+    path = driver.get_path()  # Finds path to chromedriver
+    if path is None: # checks if chromedriver is present
+        path = driver.download_driver() # downloads chromedriver
+        path = driver.get_path() # finds new chromedriver path
+    login_process = AutomateLogging(path)  # Creating Automated Logging object
     try:
-        login_process.browser_obj.get(EmpLogin.webadvisor_home)  # Opening Webadvisor homepage
-        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)  # Logging in into Webadvisor
+        login_process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
+        usr_name = input('What is your username? ')
+        pwd = input('What is your password? ')
+        login_process.login_info(username=usr_name, password=pwd)  # Logging in into Webadvisor
         login_process.entry_menu(option='Time Entry')  # Opening Time Entry menu
         login_process.entry_options(usr_option='Time entry')  # Choosing time entry option
         start_date, end_date = login_process.recent_pay_period()  # Getting dates from most recent payperiod
         start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
-        start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d') # Formatting start date eg. Y-m-d
-        login_process.browser_obj.get(EmpLogin.emp_login) # Opening Employee Console login
-        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)  # Logging into employee console
+        start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
+        login_process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
+        login_process.login_info(username=usr_name, password=pwd)  # Logging into employee console
         login_process.get_shifts(date_start=start_date, date_end=end_date)  # Gets information for shifts between dates
-        login_process.login_info(username=EmpLogin.username, password=EmpLogin.password)  # Logging into Webadvisor
+        login_process.login_info(username=usr_name, password=pwd)  # Logging into Webadvisor
         login_process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
         login_process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
         login_process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
-        login_process.submit_timesheet(finalized='N')  # Submitting timesheet
+        final = input('Would you like to finalize submission? (Y/N) ')
+        login_process.submit_timesheet(finalized='final')  # Submitting timesheet
+        print('Your timesheet has been submitted successfully.')
     finally:
         if login_process.browser_obj:
             login_process.browser_obj.quit()  # Closing browser
-        #  if display:
-            #  display.stop()
+        if display:
+            display.stop()  # Closing display
