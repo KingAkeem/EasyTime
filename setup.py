@@ -3,14 +3,11 @@ from cx_Freeze import setup, Executable
 
 # Dependencies are automatically located but may need fine tuning
 build_exe_options = {'packages':['os','numpy','pandas','sys'],'include_msvcr': True}
-base = None  # GUI applications require a different base on Windows
-
-if platform == 'win32':
-    base = 'Win32GUI'
+base = None  # Setting base to none, for terminal use until I figure out win32Gui usage
 
 setup(
     name='Time Logger',
     options={'build_exe':build_exe_options},
     version='1.0.0',
-    executables=[Executable('CCU_AutomateLogging.py', base=base)]
+    executables=[Executable('AutoLogging.py', base=base)]
 )
