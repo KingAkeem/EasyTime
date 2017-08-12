@@ -1,7 +1,7 @@
-#! /usr/bin/env python3
 
-
+import esky
 import getpass
+import sys
 from phantomjs_driver import PhantomJS_driver
 from datetime import date, datetime, time
 from pandas import date_range
@@ -11,6 +11,16 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+
+
+if hasattr(sys,"frozen"):
+    #app = esky.Esky(sys.executable,"https://example-app.com/downloads/")
+    app = esky.Esky(sys.executable,"http://localhost:8000/Time Entry Updates")
+    try:
+        app.auto_update()
+    except Exception as e:
+        print ("ERROR UPDATING APP:", e)
+
 
 
 class AutomateLogging(object):
@@ -327,6 +337,7 @@ if __name__ == '__main__':
         process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
         process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
         process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
+        print('Shifts from', start_date, 'to', end_date,'have been filled and submitted.')
         process.submit()  # Submits timesheet based on date
         if process.last_day == process.current_day:
             print('The final revision of your timesheet has been submitted to your supervisor.')

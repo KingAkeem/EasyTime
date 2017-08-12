@@ -1,19 +1,24 @@
+import esky.bdist_esky
+from esky.bdist_esky import Executable as Executable_Esky
 from cx_Freeze import setup, Executable
-import os
-
-# Dependencies are automatically located but may need fine tuning
-build_exe_options = {'packages':['os','numpy','pandas','sys'],'include_msvcr': True}
-base = None  # Setting base to none, for terminal use until I figure out win32Gui usage
-
-# Setting paths for execution
-PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
-os.environ['TCL_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tcl8.6')
-os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
-
-
 setup(
-    name='Automated Time Entry',
-    options={'build_exe':build_exe_options},
-    version='1.0.0',
-    executables=[Executable('AutoLogging.py', base=base)]
-)
+    name = 'Time Entry',
+    version = '1.0.1',
+    options = {
+        'build_exe': {
+            'packages': ['os','sys','ctypes','win32con'],
+            'excludes': ['tkinter','tcl','ttk'],
+            'include_msvcr': True,
+        },
+        'bdist_esky': {
+            'freezer_module': 'cx_freeze',
+        }
+    },
+    scripts = [
+        Executable_Esky(
+            "AutoLogging.py",
+            #icon = XPTO  # Use an icon if you want.
+            ),
+    ],
+    executables = [Executable('AutoLogging.py',base=None)]
+    )

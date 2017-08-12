@@ -1,5 +1,4 @@
 import scandir
-import getpass
 import urllib.request
 from os import getlogin, system
 from os.path import join
