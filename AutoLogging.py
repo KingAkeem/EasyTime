@@ -260,8 +260,7 @@ class AutomateLogging(object):
         if password_warning in response:
             print('You entered an invalid password. Passwords are case sensitive and have at least one upper case',
                   'character, one lower case character and one number if created after July 2007. Please try again.')
-            self.password = input('Password: ')
-            # self.password = getpass.getpass()
+            self.password = getpass.getpass()
             self.login()
 
     def submit(self):
@@ -312,7 +311,6 @@ if __name__ == '__main__':
     if path is None:  # checks if phantomjs driver is present
         path = driver.download_driver()  # downloads phantomjs driver
         path = driver.get_path()  # finds new phantomjs driver path
-    path = 'C:\\Users\\bicuser\\Downloads\\chromedriver'
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage

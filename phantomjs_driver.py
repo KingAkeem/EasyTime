@@ -26,6 +26,9 @@ class PhantomJS_driver(object):
         elif self.curr_os == 'linux':
             self.driver = 'phantomjs'
 
+        elif self.curr_os == 'darwin':
+            self.driver = 'phantomjs'
+
     def get_path(self):
         """
         Method that searches OS and finds phanthom js driver file then returns it if it exists
@@ -54,6 +57,14 @@ class PhantomJS_driver(object):
                 if self.driver in files or self.driver in root:
                     self.driver_path = join(root, self.driver)  # Joins current path and driver name to make path
                     print('found:',self.driver_path)
+                    return self.driver_path
+
+        if self.curr_os == 'darwin':
+            for root, dirs, files in scandir.walk("/Users/"):
+                print('searching:', root)
+                if self.driver in files or self.driver in root:
+                    self.driver_path = join(root, self.driver)  # Joins current path and driver name to make path
+                    print('found:', self.driver_path)
                     return self.driver_path
 
     def download_driver(self):
