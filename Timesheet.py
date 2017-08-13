@@ -1,3 +1,4 @@
+#! /usr/bin/python3.6
 import EmpLogin
 from datetime import date, datetime
 from pandas import date_range
@@ -98,7 +99,7 @@ def get_info(unformatted_time):
     :param unformatted_time: HTML source code containing shift information
     :return: Dictionary containing list of dictionaries with relevant information
     """
-    
+
     formatted_time = dict()
     # Loops through time_card and serializes information into dictionary containing relevant information
     for text in unformatted_time.text.splitlines()[1:-1]:
