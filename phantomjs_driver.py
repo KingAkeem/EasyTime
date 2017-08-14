@@ -1,9 +1,11 @@
 import scandir
+import sys
 import urllib.request
+import requests
 from os import getlogin, system
 from os.path import join
 from sys import platform
-import zipfile2
+import zipfile
 
 
 class PhantomJS_driver(object):
@@ -42,11 +44,11 @@ class PhantomJS_driver(object):
 
             except AttributeError:
 
-                for root, dirs, files in scandir.walk("C:\\Users\\"):
-                    print('searching:', root)
+                for root, dirs, files in scandir.walk("C:\\Users\\" + getlogin()):
+                    print('Searching PC for PhantomJS driver:', root)
                     if self.driver in files:
                         self.driver_path = join(root, self.driver) # Joins current path and driver name to make path
-                        print('found:',self.driver_path)
+                        print('Found PhantomJS driver:',self.driver_path)
                         return self.driver_path
 
         # If operating system is Linux then begin search using scandir at home level
@@ -75,8 +77,27 @@ class PhantomJS_driver(object):
         # If OS is Windows
         url = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-windows.zip" # Recent PhantomJS driver
         zip_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\phantomjs-2.1.1-windows.zip' # Download path
+        link = url
+        file_name = "phantomjs-2.1.1-windows.zip"
+        with open(file_name, "wb") as f:
+            print
+            "Downloading %s" % file_name
+            response = requests.get(link, stream=True)
+            total_length = response.headers.get('content-length')
+
+            if total_length is None:  # no content length header
+                f.write(response.content)
+            else:
+                dl = 0
+                total_length = int(total_length)
+                for data in response.iter_content(chunk_size=4096):
+                    dl += len(data)
+                    f.write(data)
+                    done = int(50 * dl / total_length)
+                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
+                    sys.stdout.flush()
         urllib.request.urlretrieve(url, zip_target_path)  # Downloads most recent phantom js driver to downloads directory
-        zip_ref = zipfile2.ZipFile(zip_target_path,'r')
+        zip_ref = zipfile.ZipFile(zip_target_path,'r')
         file_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\'
         zip_ref.extractall(file_target_path)
         zip_ref.close()
