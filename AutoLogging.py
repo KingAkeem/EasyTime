@@ -1,7 +1,7 @@
+#!/usr/bin/env python3
 
-import esky
-import getpass
-import sys
+
+import getpass  
 from phantomjs_driver import PhantomJS_driver
 from datetime import date, datetime, time
 from pandas import date_range
@@ -11,16 +11,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
-
-
-if hasattr(sys,"frozen"):
-    #app = esky.Esky(sys.executable,"https://example-app.com/downloads/")
-    app = esky.Esky(sys.executable,"http://localhost:8000/Time Entry Updates")
-    try:
-        app.auto_update()
-    except Exception as e:
-        print ("ERROR UPDATING APP:", e)
-
 
 
 class AutomateLogging(object):
@@ -319,8 +309,9 @@ if __name__ == '__main__':
     driver = PhantomJS_driver()  # Creates a driver
     path = driver.get_path()  # Finds path to phantomjs driver
     if path is None:  # checks if phantomjs driver is present
-        path = driver.download_driver()  # downloads phantomjs driver
+        driver.download_driver()  # downloads phantomjs driver
         path = driver.get_path()  # finds new phantomjs driver path
+    print(path)
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
