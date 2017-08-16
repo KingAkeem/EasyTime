@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-<<<<<<< HEAD
 
 import getpass  
-=======
 import getpass
->>>>>>> 5e25a2c3162c37c42ac5c510fb14901ed7aa1882
 from phantomjs_driver import PhantomJS_driver
 from datetime import date, datetime
 from pandas import date_range
@@ -317,16 +314,12 @@ if __name__ == '__main__':
     driver = PhantomJS_driver()  # Creates a driver
     path = driver.get_path()  # Finds path to phantomjs driver
     if path is None:  # checks if phantomjs driver is present
-<<<<<<< HEAD
         driver.download_driver()  # downloads phantomjs driver
         path = driver.get_path()  # finds new phantomjs driver path
-    print(path)
-=======
-        ans = input('Most recent version of PhantomJS was not found on your PC, would you like to download it? (Y/N)')
+        ans = input('Most recent version of PhantomJS will be downloaded now')
         if ans == 'y' or ans == 'Y':
             path = driver.download_driver()  # downloads phantomjs driver
             path = driver.get_path()  # finds new phantomjs driver path
->>>>>>> 5e25a2c3162c37c42ac5c510fb14901ed7aa1882
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
