@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 
 import getpass  
+=======
+import getpass
+>>>>>>> 5e25a2c3162c37c42ac5c510fb14901ed7aa1882
 from phantomjs_driver import PhantomJS_driver
-from datetime import date, datetime, time
+from datetime import date, datetime
 from pandas import date_range
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -34,9 +38,10 @@ class AutomateLogging(object):
     def __init__(self, driver_path):
 
         self.browser_obj = webdriver.PhantomJS(driver_path)
-        self.username = input('Username: ')
-        self.password = getpass.getpass()
+        # self.browser_obj = webdriver.Chrome(driver_path) Used for testing
         self.page_urls = {}
+        self.username = input('Username: ')
+        self.password = getpass.getpass() # Defaults to 'Password: '
         self.formatted_time = dict()
 
     def fill_timesheet(self, *, first_date, last_date):
@@ -70,26 +75,33 @@ class AutomateLogging(object):
 
         # Loops through range of dates and sends times to fields based on how many shifts exist per day
         for curr_date in dates:
+            if index != 29:
+                if curr_date in time_info:
+                    if len(time_info[curr_date]) == 1:
+                        time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index))  # Gets Time in field
+                        time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index))  # Gets Time out field
+                        time_in.send_keys(time_info[curr_date][0]['Time-In'])  # Sends time out info to time out field
+                        time_out.send_keys(time_info[curr_date][0]['Time-Out'])  # Sends time in info to time in field
 
-            if curr_date in time_info:
-                if len(time_info[curr_date]) == 1:
-                    time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index))  # Gets Time in field
-                    time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index))  # Gets Time out field
-                    time_in.send_keys(time_info[curr_date][0]['Time-In'])  # Sends time out info to time out field
-                    time_out.send_keys(time_info[curr_date][0]['Time-Out'])  # Sends time in info to time in field
+                    if len(time_info[curr_date]) == 2:
+                        time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index))
+                        time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index))
+                        time_in.send_keys(time_info[curr_date][0]['Time-In'])
+                        time_out.send_keys(time_info[curr_date][0]['Time-Out'])
 
-                if len(time_info[curr_date]) == 2:
-                    time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index))
-                    time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index))
-                    time_in.send_keys(time_info[curr_date][0]['Time-In'])
-                    time_out.send_keys(time_info[curr_date][0]['Time-Out'])
+                        time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index+1))
+                        time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index+1))
+                        time_in.send_keys(time_info[curr_date][1]['Time-In'])
+                        time_out.send_keys(time_info[curr_date][1]['Time-Out'])
 
-                    time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index+1))
-                    time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index+1))
-                    time_in.send_keys(time_info[curr_date][1]['Time-In'])
-                    time_out.send_keys(time_info[curr_date][1]['Time-Out'])
+                index += 2  # Moving to next day
 
-            index += 2  # Moving to next day
+        if self.last_day < self.current_day:
+            self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
+
+    def get_hours(self):
+
+        return self.browser_obj.find_element_by_id('LIST_VAR2_4').text
 
     def get_shifts(self, *, date_start, date_end):
         """
@@ -219,6 +231,7 @@ class AutomateLogging(object):
         :return: None
         """
 
+
         # If url is webadvisor or Employee Console than next page will be Webadvisor Login page
         if 'webadvisor' in self.browser_obj.current_url or 'intranet' in self.browser_obj.current_url:
             try:
@@ -247,7 +260,7 @@ class AutomateLogging(object):
                 user_name.send_keys(self.username)
                 curr_pwd.send_keys(self.password)
             except NoSuchElementException:
-                print('Username or password could not be sent!')
+                pass
 
         self.submit()
 
@@ -257,10 +270,13 @@ class AutomateLogging(object):
         if username_warning in response:
             print('Username not found. Please be sure to enter the username in all lower case. Please try again.')
             self.username = input('Username: ')
+            self.password = getpass.getpass() # Defaults to 'Password: '
+            self.login()
         if password_warning in response:
             print('You entered an invalid password. Passwords are case sensitive and have at least one upper case',
                   'character, one lower case character and one number if created after July 2007. Please try again.')
-            self.password = getpass.getpass()
+            self.username = input('Username: ')
+            self.password = getpass.getpass()  # Defaults to 'Password: '
             self.login()
 
     def submit(self):
@@ -270,14 +286,6 @@ class AutomateLogging(object):
         :param self: Current Selenium phantomjs driver instance in use
         :return: None
         """
-        try:
-            now = datetime.now()
-            curr_time = time(now.hour, now.minute, now.second)
-            final_time = time(23, 59, 59)
-            if self.last_day == self.current_day and curr_time > final_time:
-                self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
-        except AttributeError:
-            pass
 
         # If url is not webadvisor then use one of these two submit buttons otherwise use webadvisor submit button
         if 'webadvisor' not in self.browser_obj.current_url:
@@ -309,9 +317,16 @@ if __name__ == '__main__':
     driver = PhantomJS_driver()  # Creates a driver
     path = driver.get_path()  # Finds path to phantomjs driver
     if path is None:  # checks if phantomjs driver is present
+<<<<<<< HEAD
         driver.download_driver()  # downloads phantomjs driver
         path = driver.get_path()  # finds new phantomjs driver path
     print(path)
+=======
+        ans = input('Most recent version of PhantomJS was not found on your PC, would you like to download it? (Y/N)')
+        if ans == 'y' or ans == 'Y':
+            path = driver.download_driver()  # downloads phantomjs driver
+            path = driver.get_path()  # finds new phantomjs driver path
+>>>>>>> 5e25a2c3162c37c42ac5c510fb14901ed7aa1882
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
@@ -328,9 +343,10 @@ if __name__ == '__main__':
         process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
         process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
         process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
-        print('Shifts from', start_date, 'to', end_date,'have been filled and submitted.')
         process.submit()  # Submits timesheet based on date
-        if process.last_day == process.current_day:
+        num_hours = process.get_hours()
+        print("You've worked", num_hours,"hours.")
+        if process.last_day <= process.current_day:
             print('The final revision of your timesheet has been submitted to your supervisor.')
         else:
             print('Your timesheet has been submitted but not finalized.')
