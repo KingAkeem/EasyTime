@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 
-import getpass  
 import getpass
+import json
+import logging
 from phantomjs_driver import PhantomJS_driver
 from datetime import date, datetime
 from pandas import date_range
@@ -34,8 +35,8 @@ class AutomateLogging(object):
 
     def __init__(self, driver_path):
 
-        self.browser_obj = webdriver.PhantomJS(driver_path)
-        # self.browser_obj = webdriver.Chrome(driver_path) Used for testing
+        # self.browser_obj = webdriver.PhantomJS(driver_path)
+        self.browser_obj = webdriver.Chrome(driver_path)
         self.page_urls = {}
         self.username = input('Username: ')
         self.password = getpass.getpass() # Defaults to 'Password: '
@@ -311,15 +312,14 @@ class AutomateLogging(object):
 
 
 if __name__ == '__main__':
-    driver = PhantomJS_driver()  # Creates a driver
-    path = driver.get_path()  # Finds path to phantomjs driver
-    if path is None:  # checks if phantomjs driver is present
-        driver.download_driver()  # downloads phantomjs driver
-        path = driver.get_path()  # finds new phantomjs driver path
-        ans = input('Most recent version of PhantomJS will be downloaded now')
-        if ans == 'y' or ans == 'Y':
-            path = driver.download_driver()  # downloads phantomjs driver
-            path = driver.get_path()  # finds new phantomjs driver path
+        # driver = PhantomJS_driver()  # Creates a driver
+        # path = driver.get_path()  # Finds path to phantomjs driver
+        # if path is None:  # checks if phantomjs driver is present
+        #     ans = input('Most recent version of PhantomJS will be downloaded now')
+        #     if ans == 'y' or ans == 'Y':
+        #         path = driver.download_driver()  # downloads phantomjs driver
+        #         path = driver.get_path()  # finds new phantomjs driver path
+    path = '/home/atking1/Downloads/chromedriver'
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
@@ -344,7 +344,9 @@ if __name__ == '__main__':
         else:
             print('Your timesheet has been submitted but not finalized.')
         input('Press any key to end ...')
+        logging.basicConfig(filename='EasyTime.log',level='info',filemode='w')
     finally:
+        logging.info(json.dumps(process.formatted_time))
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
 

@@ -76,32 +76,32 @@ class PhantomJS_driver(object):
         """
         # If OS is Windows
         if self.curr_os == 'win32':
-        url = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-windows.zip" # Recent PhantomJS driver
-        zip_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\phantomjs-2.1.1-windows.zip' # Download path
-        link = url
-        file_name = "phantomjs-2.1.1-windows.zip"
-        with open(file_name, "wb") as f:
-            print
-            "Downloading %s" % file_name
-            response = requests.get(link, stream=True)
-            total_length = response.headers.get('content-length')
+            url = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-windows.zip" # Recent PhantomJS driver
+            zip_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\phantomjs-2.1.1-windows.zip' # Download path
+            link = url
+            file_name = "phantomjs-2.1.1-windows.zip"
+            with open(file_name, "wb") as f:
+                print
+                "Downloading %s" % file_name
+                response = requests.get(link, stream=True)
+                total_length = response.headers.get('content-length')
 
-            if total_length is None:  # no content length header
-                f.write(response.content)
-            else:
-                dl = 0
-                total_length = int(total_length)
-                for data in response.iter_content(chunk_size=4096):
-                    dl += len(data)
-                    f.write(data)
-                    done = int(50 * dl / total_length)
-                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
-                    sys.stdout.flush()
-        urllib.request.urlretrieve(url, zip_target_path)  # Downloads most recent phantom js driver to downloads directory
-        zip_ref = zipfile.ZipFile(zip_target_path,'r')
-        file_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\'
-        zip_ref.extractall(file_target_path)
-        zip_ref.close()
+                if total_length is None:  # no content length header
+                    f.write(response.content)
+                else:
+                    dl = 0
+                    total_length = int(total_length)
+                    for data in response.iter_content(chunk_size=4096):
+                        dl += len(data)
+                        f.write(data)
+                        done = int(50 * dl / total_length)
+                        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50 - done)))
+                        sys.stdout.flush()
+            urllib.request.urlretrieve(url, zip_target_path)  # Downloads most recent phantom js driver to downloads directory
+            zip_ref = zipfile.ZipFile(zip_target_path,'r')
+            file_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\'
+            zip_ref.extractall(file_target_path)
+            zip_ref.close()
 
         # If OS is Linux
         if self.curr_os == 'linux':
