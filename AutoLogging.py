@@ -39,7 +39,7 @@ class AutomateLogging(object):
         self.browser_obj = webdriver.Chrome(driver_path)
         self.page_urls = {}
         self.username = input('Username: ')
-        self.password = getpass.getpass() # Defaults to 'Password: '
+        self.password = getpass.getpass()  # Defaults to 'Password: '
         self.formatted_time = dict()
 
     def fill_timesheet(self, *, first_date, last_date):
@@ -229,7 +229,6 @@ class AutomateLogging(object):
         :return: None
         """
 
-
         # If url is webadvisor or Employee Console than next page will be Webadvisor Login page
         if 'webadvisor' in self.browser_obj.current_url or 'intranet' in self.browser_obj.current_url:
             try:
@@ -268,7 +267,7 @@ class AutomateLogging(object):
         if username_warning in response:
             print('Username not found. Please be sure to enter the username in all lower case. Please try again.')
             self.username = input('Username: ')
-            self.password = getpass.getpass() # Defaults to 'Password: '
+            self.password = getpass.getpass()  # Defaults to 'Password: '
             self.login()
         if password_warning in response:
             print('You entered an invalid password. Passwords are case sensitive and have at least one upper case',
@@ -338,7 +337,7 @@ if __name__ == '__main__':
         process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
         process.submit()  # Submits timesheet based on date
         num_hours = process.get_hours()
-        print("You've worked", num_hours,"hours.")
+        print("You've worked", num_hours, "hours.")
         if process.last_day <= process.current_day:
             print('The final revision of your timesheet has been submitted to your supervisor.')
         else:
@@ -349,4 +348,3 @@ if __name__ == '__main__':
         logging.info(json.dumps(process.formatted_time))
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
-
