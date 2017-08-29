@@ -5,13 +5,14 @@ import getpass
 import json
 import logging
 from datetime import date, datetime
-from phantomjs_driver import PhantomJS_driver
+from phantomjs_driver import PhantomJSDriver
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
+from sys import exit
 
 
 class AutomateLogging(object):
@@ -297,13 +298,17 @@ class AutomateLogging(object):
 
 
 if __name__ == '__main__':
-    driver = PhantomJS_driver()  # Creates a driver
+    driver = PhantomJSDriver()  # Creates a driver
     path = driver.get_path()  # Finds path to phantomjs driver
     if path is None:  # checks if phantomjs driver is present
-        answer = input('Most recent version of PhantomJS will be downloaded now')
-        if answer == 'y' or answers == 'Y':
+        answer = input('Do you want to download the most recent version of PhantomJS driver? '
+                       'Program will not be installed otherwise. (Y/N)')
+        if answer == 'y' or answer == 'Y':
             path = driver.download_driver()  # downloads phantomjs driver
             path = driver.get_path()  # finds new phantomjs driver path
+        else:
+            print("Program will be closed.")
+            exit()
 
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
@@ -316,14 +321,13 @@ if __name__ == '__main__':
         start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
         process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
         process.login()  # Logging into employee console
-        process.get_shifts(date_start='2017-08-20', date_end=end_date)  # Gets information for shifts between dates
+        process.get_shifts(date_start=start_date, date_end=end_date)  # Gets information for shifts between dates
         process.login()  # Logging into Webadvisor
         process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
         process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
         process.fill_timesheet(last_date=end_date)  # Filling time sheet within date range
         process.submit()  # Submits timesheet based on date
-        num_hours = process.get_hours()
-        print("You've worked", num_hours, "hours.")
+        print("You've worked", process.get_hours(), "hours.")
         if process.last_day <= process.current_day:
             print('The final revision of your timesheet has been submitted to your supervisor.')
         else:

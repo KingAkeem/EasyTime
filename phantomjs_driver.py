@@ -2,19 +2,19 @@ try:
     from scandir import scandir, walk
 except ImportError:
     from os import scandir, walk
+
 import getpass
+import requests
 import sys
-import urllib.request
 import urllib.request
 import zipfile
 from os import getlogin, system
 from os.path import join
 from sys import platform
 
-import requests
 
 
-class PhantomJS_driver(object):
+class PhantomJSDriver(object):
     """
     Class that controls phanthom js driver
 
@@ -42,7 +42,7 @@ class PhantomJS_driver(object):
 
         # If operating system is Windows then begin search using scandir at User level
         if self.curr_os == 'win32':
-            for root, dirs, files in scandir.walk("C:\\Users\\"):
+            for root, dirs, files in walk("C:\\Users\\"):
                 print('searching:', root)
                 if self.driver in files:
                     self.driver_path = join(root, self.driver) # Joins current path and driver name to make path
@@ -50,7 +50,7 @@ class PhantomJS_driver(object):
                     return self.driver_path
 
         if self.curr_os == 'linux':
-            for root, dirs, files in scandir.walk("/home/"+getpass.getuser()+"/"):
+            for root, dirs, files in walk("/home/" + getpass.getuser()+ "/"):
                 print('searching:', root)
                 if self.driver in files or self.driver in root:
                     self.driver_path = join(root, self.driver)  # Joins current path and driver name to make path
@@ -58,7 +58,7 @@ class PhantomJS_driver(object):
                     return self.driver_path
 
         if self.curr_os == 'darwin':
-            for root, dirs, files in scandir.walk("/Users/"):
+            for root, dirs, files in walk("/Users/"):
                 print('searching:', root)
                 if self.driver in files or self.driver in root:
                     self.driver_path = join(root, self.driver)  # Joins current path and driver name to make path
@@ -104,3 +104,5 @@ class PhantomJS_driver(object):
         if self.curr_os == 'linux':
             system('wget -N https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-windows.zip -P ~/Downloads')
             system('unzip ~/Downloads/phantomjs-2.1.1-windows.zip -d ~/Downloads/')
+            system('chmod u+x ~/Downloads/phantomjs-2.1.1-windows/bin/phantomjs.exe')
+            print('You now have Phantom JS version 2.1.1 driver in your ~/Downloads/ folder.')
