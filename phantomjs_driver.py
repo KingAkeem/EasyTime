@@ -1,20 +1,17 @@
-import scandir
-import shutil
+try:
+    from scandir import scandir, walk
+except ImportError:
+    from os import scandir, walk
 import getpass
-import os
-import magic
-import zipfile2
-import urllib.request
-from os import system
-from os.path import join
-from sys import platform
 import sys
 import urllib.request
-import requests
+import urllib.request
+import zipfile
 from os import getlogin, system
 from os.path import join
 from sys import platform
-import zipfile
+
+import requests
 
 
 class PhantomJS_driver(object):

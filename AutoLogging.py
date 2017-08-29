@@ -300,10 +300,11 @@ if __name__ == '__main__':
     driver = PhantomJS_driver()  # Creates a driver
     path = driver.get_path()  # Finds path to phantomjs driver
     if path is None:  # checks if phantomjs driver is present
-        ans = input('Most recent version of PhantomJS will be downloaded now')
-        if ans == 'y' or ans == 'Y':
+        answer = input('Most recent version of PhantomJS will be downloaded now')
+        if answer == 'y' or answers == 'Y':
             path = driver.download_driver()  # downloads phantomjs driver
             path = driver.get_path()  # finds new phantomjs driver path
+
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
