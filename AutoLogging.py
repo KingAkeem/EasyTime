@@ -36,7 +36,7 @@ class AutomateLogging(object):
 
         self.browser_obj = webdriver.PhantomJS(driver_path)  # Headless browser
         # self.browser_obj = webdriver.Chrome(driver_path)  # Test browser
-        self.page_urls = {}  # Dictionary containg page urls
+        self.page_urls = {}  # Dictionary containg page urlsy
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '
         self.formatted_time = dict()
