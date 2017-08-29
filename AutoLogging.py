@@ -4,15 +4,14 @@
 import getpass
 import json
 import logging
-from phantomjs_driver import PhantomJS_driver
 from datetime import date, datetime
-from pandas import date_range
+from phantomjs_driver import PhantomJS_driver
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 class AutomateLogging(object):
@@ -35,20 +34,19 @@ class AutomateLogging(object):
 
     def __init__(self, driver_path):
 
-        # self.browser_obj = webdriver.PhantomJS(driver_path)
-        self.browser_obj = webdriver.Chrome(driver_path)
-        self.page_urls = {}
+        self.browser_obj = webdriver.PhantomJS(driver_path)  # Headless browser
+        # self.browser_obj = webdriver.Chrome(driver_path)  # Test browser
+        self.page_urls = {}  # Dictionary containg page urls
         self.username = input('Username: ')
-        self.password = getpass.getpass() # Defaults to 'Password: '
+        self.password = getpass.getpass()  # Defaults to 'Password: '
         self.formatted_time = dict()
 
-    def fill_timesheet(self, *, first_date, last_date):
+    def fill_timesheet(self, *, last_date):
         """
         Void method that fills timesheet using the first and last date to generate the payperiod dates then looping
         through those dates and inserting the times of the ones that I have worked using an indexing trick
 
         :param self: Current Selenium phantomjs driver instance in use
-        :param first_date: First date of the payperiod
         :param last_date: Last date of the payperiod
         :return: None
         """
@@ -57,44 +55,32 @@ class AutomateLogging(object):
         self.submit()  # Submitting checked box
 
         # Splits date into a three element list and then converts each element to an int using map function
-        start_year, start_month, start_day = map(int, first_date.split('-'))
         end_year, end_month, end_day = map(int, last_date.split('-'))
 
-        # Producing range of dates for payperiod using pandas date_range
-        start = date(start_year, start_month, start_day)
-        end = date(end_year, end_month, end_day)
-        dates = date_range(start, end, freq='D').tolist()
-
-        dates = [str(x) for x in dates]  # Converting each Timestamp element to a string
-        dates = [x.replace(' 00:00:00', '') for x in dates]  # Removing extra time eg. second, hours and minutes
-
-        index = 1  # Index of first field
         time_info = self.formatted_time  # Dictionary containing shift information
+        processed_dates = []
+        for p in self.browser_obj.find_elements_by_tag_name('p'):
+            tag_name = p.get_attribute('id')
+            curr_date = p.text
+            if 'DATE' in tag_name:
+                month, day, year = curr_date.split('/')
+                curr_date = '-'.join(('20' + year, month, day))
+                column_no = tag_name.split('_')[-1]
+            if 'LIST2' in tag_name and curr_date in self.formatted_time:
+                time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + column_no)
+                time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + column_no)
 
-        # Loops through range of dates and sends times to fields based on how many shifts exist per day
-        for curr_date in dates:
-            if index != 29:
-                if curr_date in time_info:
-                    if len(time_info[curr_date]) == 1:
-                        time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index))  # Gets Time in field
-                        time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index))  # Gets Time out field
-                        time_in.send_keys(time_info[curr_date][0]['Time-In'])  # Sends time out info to time out field
-                        time_out.send_keys(time_info[curr_date][0]['Time-Out'])  # Sends time in info to time in field
-
-                    if len(time_info[curr_date]) == 2:
-                        time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index))
-                        time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index))
-                        time_in.send_keys(time_info[curr_date][0]['Time-In'])
-                        time_out.send_keys(time_info[curr_date][0]['Time-Out'])
-
-                        time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + str(index+1))
-                        time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + str(index+1))
-                        time_in.send_keys(time_info[curr_date][1]['Time-In'])
-                        time_out.send_keys(time_info[curr_date][1]['Time-Out'])
-
-                index += 2  # Moving to next day
-
-        if self.last_day < self.current_day:
+                if curr_date in processed_dates and len(time_info[curr_date]) == 2:
+                    time_in.send_keys(time_info[curr_date][1]['Time-In'])
+                    time_out.send_keys(time_info[curr_date][1]['Time-Out'])
+                elif curr_date not in processed_dates:
+                    time_in.send_keys(time_info[curr_date][0]['Time-In'])
+                    time_out.send_keys(time_info[curr_date][0]['Time-Out'])
+                processed_dates.append(curr_date)
+        date_currently = date.today()
+        date_last = date(end_year, end_month, end_day)
+        ans = input('Would you like to finalize your time sheet? (Y/N) ')
+        if ans == 'y' or ans == 'Y' and date_currently >= date_last:
             self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
 
     def get_hours(self):
@@ -229,7 +215,6 @@ class AutomateLogging(object):
         :return: None
         """
 
-
         # If url is webadvisor or Employee Console than next page will be Webadvisor Login page
         if 'webadvisor' in self.browser_obj.current_url or 'intranet' in self.browser_obj.current_url:
             try:
@@ -268,7 +253,7 @@ class AutomateLogging(object):
         if username_warning in response:
             print('Username not found. Please be sure to enter the username in all lower case. Please try again.')
             self.username = input('Username: ')
-            self.password = getpass.getpass() # Defaults to 'Password: '
+            self.password = getpass.getpass()  # Defaults to 'Password: '
             self.login()
         if password_warning in response:
             print('You entered an invalid password. Passwords are case sensitive and have at least one upper case',
@@ -312,14 +297,13 @@ class AutomateLogging(object):
 
 
 if __name__ == '__main__':
-        # driver = PhantomJS_driver()  # Creates a driver
-        # path = driver.get_path()  # Finds path to phantomjs driver
-        # if path is None:  # checks if phantomjs driver is present
-        #     ans = input('Most recent version of PhantomJS will be downloaded now')
-        #     if ans == 'y' or ans == 'Y':
-        #         path = driver.download_driver()  # downloads phantomjs driver
-        #         path = driver.get_path()  # finds new phantomjs driver path
-    path = '/home/atking1/Downloads/chromedriver'
+    driver = PhantomJS_driver()  # Creates a driver
+    path = driver.get_path()  # Finds path to phantomjs driver
+    if path is None:  # checks if phantomjs driver is present
+        ans = input('Most recent version of PhantomJS will be downloaded now')
+        if ans == 'y' or ans == 'Y':
+            path = driver.download_driver()  # downloads phantomjs driver
+            path = driver.get_path()  # finds new phantomjs driver path
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
@@ -331,22 +315,21 @@ if __name__ == '__main__':
         start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
         process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
         process.login()  # Logging into employee console
-        process.get_shifts(date_start=start_date, date_end=end_date)  # Gets information for shifts between dates
+        process.get_shifts(date_start='2017-08-20', date_end=end_date)  # Gets information for shifts between dates
         process.login()  # Logging into Webadvisor
         process.entry_menu(option='Time Entry')  # Opening Time Entry Menu
         process.entry_options(usr_option='Time entry')  # Choosing Time Entry option
-        process.fill_timesheet(first_date=start_date, last_date=end_date)  # Filling time sheet within date range
+        process.fill_timesheet(last_date=end_date)  # Filling time sheet within date range
         process.submit()  # Submits timesheet based on date
         num_hours = process.get_hours()
-        print("You've worked", num_hours,"hours.")
+        print("You've worked", num_hours, "hours.")
         if process.last_day <= process.current_day:
             print('The final revision of your timesheet has been submitted to your supervisor.')
         else:
             print('Your timesheet has been submitted but not finalized.')
         input('Press any key to end ...')
-        logging.basicConfig(filename='EasyTime.log',level='info',filemode='w')
+        logging.basicConfig(filename='EasyTime.log', level=logging.INFO, filemode='w')
     finally:
         logging.info(json.dumps(process.formatted_time))
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
-
