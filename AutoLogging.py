@@ -40,12 +40,13 @@ class AutomateLogging(object):
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '
-        self.shifts = dict() # Dictionary containing shifts consisting of
+        self.shifts = dict()  # Dictionary containing shifts consisting of
 
     def fill_timesheet(self):
         """
-        Void method that fills timesheet using the first and last date to generate the payperiod dates then looping
-        through those dates and inserting the times of the ones that I have worked using an indexing trick
+        Void method that fills timesheet using the first and last date to
+        generate the payperiod dates then looping through those dates and
+        inserting times.
 
         :param self: Current Selenium phantomjs driver instance in use
         :param last_date: Last date of the payperiod
@@ -92,6 +93,18 @@ class AutomateLogging(object):
         else:
             print('Your timesheet has not been finalized.') # Used double quotes because conjunction
 
+    def recent_pay_period(self):
+        """Finds first and lates date of most recent payperiod by ID
+        :param self: Current Selenium PhantomJS driver instance in use
+        """
+        self.first_day = self.browser_obj.find_element_by_id(
+            'DATE_LIST_VAR1_1'
+        ).text  # First day of pay period
+        self.last_day = self.browser_obj.find_element_by_id(
+            'DATE_LIST_VAR2_1'
+        ).text # Last day of pay period
+        self.current_day = self.browser_obj.find_element_by_id(
+            datetime.today().strftime('%Y-%m-%d') # Current Day
 
     def get_hours(self):
 
