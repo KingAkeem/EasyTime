@@ -42,7 +42,7 @@ class PhantomJSDriver(object):
 
         # If operating system is Windows then begin search using scandir at User level
         if self.curr_os == 'win32':
-            for root, dirs, files in walk("C:\\Users\\"):
+            for root, dirs, files in walk('C:\\Users\\'):
                 print('searching:', root)
                 if self.driver in files:
                     self.driver_path = join(root, self.driver) # Joins current path and driver name to make path
@@ -50,7 +50,7 @@ class PhantomJSDriver(object):
                     return self.driver_path
 
         if self.curr_os == 'linux':
-            for root, dirs, files in walk("/home/" + getpass.getuser()+ "/"):
+            for root, dirs, files in walk('/home/' + getpass.getuser()+ '/'):
                 print('searching:', root)
                 if self.driver in files or self.driver in root:
                     self.driver_path = join(root, self.driver)  # Joins current path and driver name to make path
@@ -58,7 +58,7 @@ class PhantomJSDriver(object):
                     return self.driver_path
 
         if self.curr_os == 'darwin':
-            for root, dirs, files in walk("/Users/"):
+            for root, dirs, files in walk('/Users/'):
                 print('searching:', root)
                 if self.driver in files or self.driver in root:
                     self.driver_path = join(root, self.driver)  # Joins current path and driver name to make path
@@ -73,13 +73,12 @@ class PhantomJSDriver(object):
         """
         # If OS is Windows
         if self.curr_os == 'win32':
-            url = "https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-windows.zip" # Recent PhantomJS driver
+            url = 'https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-windows.zip' # Recent PhantomJS driver
             zip_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\phantomjs-2.1.1-windows.zip' # Download path
             link = url
-            file_name = "phantomjs-2.1.1-windows.zip"
-            with open(file_name, "wb") as f:
-                print
-                "Downloading %s" % file_name
+            file_name = 'phantomjs-2.1.1-windows.zip'
+            with open(file_name, 'wb') as f:
+                print('Downloading %s' % file_name)
                 response = requests.get(link, stream=True)
                 total_length = response.headers.get('content-length')
 
@@ -99,6 +98,7 @@ class PhantomJSDriver(object):
             file_target_path = 'C:\\Users\\' + getlogin() + '\\Downloads\\'
             zip_ref.extractall(file_target_path)
             zip_ref.close()
+            print('You now have Phantom JS version 2.1.1 driver in ' + file_target_path)
 
         # If OS is Linux
         if self.curr_os == 'linux':
