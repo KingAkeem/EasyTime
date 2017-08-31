@@ -60,19 +60,19 @@ class AutomateLogging(object):
 
         time_info = self.formatted_time  # Dictionary containing shift information
         processed_dates = []  # Dates that have already been processed
-        dates = self.browser_obj.find_element_by_tag_name('p')  # Getting list of dates
+        dates = self.browser_obj.find_elements_by_tag_name('p')  # Getting list of dates
 
         # Loops over dates and sends text to input boxes that match dates
-        for date in dates:
-            tag_name = date.get_attribute('id')
-            curr_date = date.text
+        for d in dates:
+            tag_name = d.get_attribute('id')
+            curr_date = d.text
 
             # If value is a date then split it and join back in a usable format '%Y-%m-%d' and get current column number
             if 'DATE' in tag_name:
                 month, day, year = curr_date.split('/')
                 curr_date = '-'.join(('20' + year, month, day))
                 column_no = tag_name.split('_')[-1]
-            
+
             if 'LIST2' in tag_name and curr_date in self.formatted_time:
                 time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + column_no)
                 time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + column_no)
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         process.login()  # Logging in into Webadvisor
         process.entry_menu(option='Time Entry')  # Opening Time Entry menu
         process.entry_options(usr_option='Time entry')  # Choosing time entry option
-        start_date, end_date = process.recent_pay_period()  # Getting dates from most recent payperiod
+        start_date, end_date = process.recent_pay_period() # Getting dates from most recent payperiod
         start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
         start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
         process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
@@ -341,6 +341,6 @@ if __name__ == '__main__':
         input('Press any key to end ...')
         logging.basicConfig(filename='EasyTime.log', level=logging.INFO, filemode='w')
     finally:
-        logging.info(json.dumps(process.formatted_time))
+        logging.info(json.dumps(process.formatted_time, sort_keys=True, indent=4))
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
