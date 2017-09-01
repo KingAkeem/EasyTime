@@ -70,11 +70,7 @@ class AutomateLogging(object):
                 curr_date = '-'.join(('20' + year, month, day))
                 column_no = tag_name.split('_')[-1]
 
-<<<<<<< HEAD
-            if 'LIST2' in tag_name and curr_date in self.formatted_time:
-=======
             if 'LIST2' in tag_name and curr_date in self.shifts:
->>>>>>> development
                 time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + column_no)
                 time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + column_no)
 
@@ -90,7 +86,6 @@ class AutomateLogging(object):
         ans = input('Would you like to finalize your time sheet? (Y/N) ')
         date_last = self.last_day
         if ans == 'y' or ans == 'Y' and date_currently >= date_last:
-            print(date_last)
             print('Your timesheet has been finalized.')
             # self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
         else:
@@ -331,16 +326,8 @@ if __name__ == '__main__':
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
         process.login()  # Logging in into Webadvisor
-<<<<<<< HEAD
-        process.entry_menu(option='Time Entry')  # Opening Time Entry menu
-        process.entry_options(usr_option='Time entry')  # Choosing time entry option
-        start_date, end_date = process.recent_pay_period() # Getting dates from most recent payperiod
-        start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
-        start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
-=======
         process.entry_menu()  # Opening Time Entry menu
         start_date = process.recent_pay_period()  # Getting dates from most recent payperiod
->>>>>>> development
         process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
         process.login()  # Logging into employee console
         process.get_shifts(date_start=start_date, date_end=process.last_day)  # Gets information for shifts between dates
@@ -354,10 +341,6 @@ if __name__ == '__main__':
         print(process.shifts)
         logging.basicConfig(filename='easytime.log', level=logging.INFO, filemode='w')
     finally:
-<<<<<<< HEAD
-        logging.info(json.dumps(process.formatted_time, sort_keys=True, indent=4))
-=======
         logging.info(json.dumps(process.shifts, sort_keys=True, indent=4))
->>>>>>> development
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
