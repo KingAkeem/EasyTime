@@ -35,12 +35,11 @@ class AutomateLogging(object):
 
     def __init__(self, driver_path):
 
-        self.browser_obj = webdriver.PhantomJS(driver_path)  # Headless browser
-        # self.browser_obj = webdriver.Chrome(driver_path)  # Test browser
+        # self.browser_obj = webdriver.PhantomJS(driver_path)  # Headless browser
+        self.browser_obj = webdriver.Chrome(driver_path)  # Test browser
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '
-        self.shifts = dict()  # Dictionary containing shifts consisting of
 
     def fill_timesheet(self):
         """
@@ -91,7 +90,7 @@ class AutomateLogging(object):
             print('Your timesheet has been finalized.')
             # self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
         else:
-            print('Your timesheet has not been finalized.') # Used double quotes because conjunction
+            print('Your timesheet has not been finalized.')  # Used double quotes because conjunction
 
     def recent_pay_period(self):
         """Finds first and lates date of most recent payperiod by ID
@@ -102,9 +101,13 @@ class AutomateLogging(object):
         ).text  # First day of pay period
         self.last_day = self.browser_obj.find_element_by_id(
             'DATE_LIST_VAR2_1'
-        ).text # Last day of pay period
-        self.current_day = self.browser_obj.find_element_by_id(
-            datetime.today().strftime('%Y-%m-%d') # Current Day
+        ).text  # Last day of pay period
+        self.current_day = datetime.today().strftime('%Y-%m-%d')  # Current Day
+        self.first_day = self.first_day[0:6] + '20' + self.first_day[6:8]  # Making two digit year into four digits eg. 17 -> 2017
+        self.last_day = self.last_day[0:6] + '20' + self.last_day[6:8]  # Making two digit year into four digits eg. 17 -> 2017
+        self.first_day = datetime.strptime(self.first_day, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
+        self.last_day = datetime.strptime(self.last_day, '%m/%d/%Y').strftime('%Y-%m-%d')
+        return self.first_day
 
     def get_hours(self):
 
@@ -124,6 +127,7 @@ class AutomateLogging(object):
         try:
             return self.shifts  # Returns shifts if it already exists
         except AttributeError:
+            self.shifts = dict()
             self.browser_obj.maximize_window()  # Enlarges window to maximum size
 
             # Webdriver explicitly waits up until 10 seoncds or when it finds the chosen element by id then it moves to
@@ -140,9 +144,8 @@ class AutomateLogging(object):
             # Waiting for JavaScript text to be generated and then assigning the text to self.shifts
             wait.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, 'tableHead')))
             self.shifts_text = self.browser_obj.find_element_by_id('reportContent').text
-
             # Loops through unformatted text of self.shifts and puts them into a more useful data container
-            for text in self.shifts_texts.splitlines()[1:-1]: # Used [1:-1] to ignore header and footer in list from splitting
+            for text in self.shifts_text.splitlines()[1:-1]: # Used [1:-1] to ignore header and footer in list from splitting
                 line = text.split()
                 if len(line) == 9:
                     name = line[0] + ' ' + line[1]
@@ -209,7 +212,6 @@ class AutomateLogging(object):
         # Stores name and url pairs into dictionary
         for option in menu_options:
             options[option.text] = option.get_attribute('href')
-
 
         self.browser_obj.get(options['Time entry'])  # Opens page of usr chosen option eg. 'Time entry' page
 
@@ -309,26 +311,24 @@ class AutomateLogging(object):
 
 if __name__ == '__main__':
 
-    driver = PhantomJSDriver()  # Creates a driver
-    path = driver.get_path()  # Finds path to phantomjs driver
-    if path is None:  # checks if phantomjs driver is present
-        answer = input('Do you want to download the most recent version of PhantomJS driver? '
-                       'Program will not be installed otherwise. (Y/N)')
-        if answer == 'y' or answer == 'Y':
-            path = driver.download_driver()  # downloads phantomjs driver
-            path = driver.get_path()  # finds new phantomjs driver path
-        else:
-            print('Program will be closed.')
-            exit()
-
+#    driver = PhantomJSDriver()  # Creates a driver
+#    path = driver.get_path()  # Finds path to phantomjs driver
+#    if path is None:  # checks if phantomjs driver is present
+#        answer = input('Do you want to download the most recent version of PhantomJS driver? '
+#                       'Program will not be installed otherwise. (Y/N)')
+#        if answer == 'y' or answer == 'Y':
+#            path = driver.download_driver()  # downloads phantomjs driver
+#            path = driver.get_path()  # finds new phantomjs driver path
+#        else:
+#            print('Program will be closed.')
+#            exit()
+    path = '/home/atking1/Downloads/chromedriver'
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
         process.login()  # Logging in into Webadvisor
         process.entry_menu()  # Opening Time Entry menu
         start_date = process.recent_pay_period()  # Getting dates from most recent payperiod
-        start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
-        start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
         process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
         process.login()  # Logging into employee console
         process.get_shifts(date_start=start_date, date_end=process.last_day)  # Gets information for shifts between dates
@@ -336,9 +336,12 @@ if __name__ == '__main__':
         process.entry_menu()  # Opening Time Entry Menu
         process.fill_timesheet()  # Filling time sheet within date range
         process.submit()  # Submits timesheet based on date
+        hours = process.get_hours()
+        print(f"You've worked {hours} hours.")
         input('Press any key to end ...')
-        logging.basicConfig(filename='EasyTime.log', level=logging.INFO, filemode='w')
+        print(process.shifts)
+        logging.basicConfig(filename='easytime.log', level=logging.INFO, filemode='w')
     finally:
-        logging.info(json.dumps(process.shifts))
+        logging.info(json.dumps(process.shifts, sort_keys=True, indent=4))
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
