@@ -1,5 +1,6 @@
 # TimeSheet
-This is a script to automate logging hours into my timesheet. The script is basically a web-scraping tool that can scrape one site and input the text into fields on another site. As of right now, it's for personal use but I hope to build it to be more robust and usable once it's fully functional. I used selenium to automate the web browsing and I used a lot of the os module components to be able to find the chromedriver location or download it in the case that it doesn't exist.
+This is a script to automate logging hours into a bi-weekly. The script is basically a web-scraping tool that can scrape one site and input the text into fields on another site. As of right now, it's for personal/co-worker use but I hope to build it to be more robust and usable once it's fully functional. I used Selenium to automate the web browsing and I also created a PhantomJS driver class specifically meant to be able to find/download the latest PhantomJS driver as needed since it's the driver that I'm using to run Selenium headlessly.
+
 
 ## Getting started
 
@@ -13,7 +14,7 @@ pip install selenium scandir requests urllib
 
 ## Execution
 
-Whenever you need to execute the script you can either run ./path/to/AutoLogging.py or python ./path/to/AutoLogging.py
+Whenever you need to execute the script you can either run ./path/to/AutoLogging.py or python /path/to/AutoLogging.py
 
 
 ## Authors
