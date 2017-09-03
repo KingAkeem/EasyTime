@@ -111,13 +111,12 @@ class AutomateLogging(object):
         self.last_day = self.last_day[0:6] + '20' + self.last_day[6:8]  # Making two digit year into four digits eg. 17 -> 2017
         self.first_day = datetime.strptime(self.first_day, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
         self.last_day = datetime.strptime(self.last_day, '%m/%d/%Y').strftime('%Y-%m-%d')
-        return self.first_day
 
     def get_hours(self):
 
         return self.browser_obj.find_element_by_id('LIST_VAR2_4').text
 
-    def get_shifts(self, *, date_start, date_end):
+    def get_shifts(self):
         """
         Expicitly waits for JavaScript to generate shift content
 
@@ -139,10 +138,10 @@ class AutomateLogging(object):
             wait = WebDriverWait(self.browser_obj, 10)
             wait.until(expected_conditions.presence_of_all_elements_located((By.ID, 'from')))
             from_date = self.browser_obj.find_element_by_id('from')
-            ActionChains(self.browser_obj).move_to_element(from_date).click().send_keys(date_start).perform()
+            ActionChains(self.browser_obj).move_to_element(from_date).click().send_keys(self.first_day).perform()
             wait.until(expected_conditions.presence_of_all_elements_located((By.ID, 'to')))
             to_date = self.browser_obj.find_element_by_id('to')
-            ActionChains(self.browser_obj).move_to_element(to_date).click().send_keys(date_end).perform()
+            ActionChains(self.browser_obj).move_to_element(to_date).click().send_keys(self.last_day).perform()
             self.submit()  # Submit dates
 
             # Waiting for JavaScript text to be generated and then assigning the text to self.shifts
@@ -318,18 +317,21 @@ if __name__ == '__main__':
     driver = PhantomJSDriver()  # Creates a driver
     path = driver.get_path()  # Finds path to phantomjs driver
     if path is None:  # checks if phantomjs driver is present
-        answer = input('Do you want to download the most recent version of PhantomJS driver? '
-                       'Program will not be installed otherwise. (Y/N)')
+        answer = input('Do you want to download the most recent version of'
+                       'PhantomJS driver? Program will not be installed'
+                       'otherwise. (Y/N)')
         if answer == 'y' or answer == 'Y':
             path = driver.download_driver()  # downloads phantomjs driver
             path = driver.get_path()  # finds new phantomjs driver path
         else:
             print('Program will be closed.')
-            exit()
+            exit()  # Ends current program
 
     process = AutomateLogging(path)   # Creating Automated Logging object
     try:
-        process.browser_obj.get('https://webadvisor.coastal.edu')  # Opening Webadvisor homepage
+        webadvisor = 'https://webadvisor.coastal.edu'
+        emp_console = 'https://coastal.edu/scs/employee'
+        process.browser_obj.get(webadvisor)  # Opening Webadvisor homepage
         process.login()  # Logging in into Webadvisor
 <<<<<<< HEAD
         process.entry_menu(option='Time Entry')  # Opening Time Entry menu
@@ -339,11 +341,16 @@ if __name__ == '__main__':
         start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
 =======
         process.entry_menu()  # Opening Time Entry menu
+<<<<<<< HEAD
         start_date = process.recent_pay_period()  # Getting dates from most recent payperiod
 >>>>>>> development
         process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
+=======
+        process.recent_pay_period()  # Getting dates from most recent payperiod
+        process.browser_obj.get(emp_console)  # Opening Employee Console login
+>>>>>>> development
         process.login()  # Logging into employee console
-        process.get_shifts(date_start=start_date, date_end=process.last_day)  # Gets information for shifts between dates
+        process.get_shifts()  # Gets information for shifts between dates
         process.login()  # Logging into Webadvisor
         process.entry_menu()  # Opening Time Entry Menu
         process.fill_timesheet()  # Filling time sheet within date range
@@ -351,8 +358,14 @@ if __name__ == '__main__':
         hours = process.get_hours()
         print(f"You've worked {hours} hours.")
         input('Press any key to end ...')
-        print(process.shifts)
-        logging.basicConfig(filename='easytime.log', level=logging.INFO, filemode='w')
+
+        # Logs times that were entered into a log sheet in the current working
+        # directory named 'easytime.log'
+        logging.basicConfig(
+            filename='easytime.log',
+            level=logging.INFO,
+            filemode='w'
+        )
     finally:
 <<<<<<< HEAD
         logging.info(json.dumps(process.formatted_time, sort_keys=True, indent=4))
