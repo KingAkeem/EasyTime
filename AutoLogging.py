@@ -70,11 +70,7 @@ class AutomateLogging(object):
                 curr_date = '-'.join(('20' + year, month, day))
                 column_no = tag_name.split('_')[-1]
 
-<<<<<<< HEAD
-            if 'LIST2' in tag_name and curr_date in self.formatted_time:
-=======
             if 'LIST2' in tag_name and curr_date in self.shifts:
->>>>>>> development
                 time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + column_no)
                 time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + column_no)
 
@@ -221,7 +217,6 @@ class AutomateLogging(object):
         self.first_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text  # First day of pay period
         self.last_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR2_1').text  # Last day of pay period
 
-        return self.first_day
 
     def login(self):
         """
@@ -333,22 +328,9 @@ if __name__ == '__main__':
         emp_console = 'https://coastal.edu/scs/employee'
         process.browser_obj.get(webadvisor)  # Opening Webadvisor homepage
         process.login()  # Logging in into Webadvisor
-<<<<<<< HEAD
-        process.entry_menu(option='Time Entry')  # Opening Time Entry menu
-        process.entry_options(usr_option='Time entry')  # Choosing time entry option
-        start_date, end_date = process.recent_pay_period() # Getting dates from most recent payperiod
-        start_date = start_date[0:6] + '20' + start_date[6:8]  # Making two digit year into four digits eg. 17 -> 2017
-        start_date = datetime.strptime(start_date, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
-=======
         process.entry_menu()  # Opening Time Entry menu
-<<<<<<< HEAD
-        start_date = process.recent_pay_period()  # Getting dates from most recent payperiod
->>>>>>> development
-        process.browser_obj.get('https://www.coastal.edu/scs/employee')  # Opening Employee Console login
-=======
         process.recent_pay_period()  # Getting dates from most recent payperiod
         process.browser_obj.get(emp_console)  # Opening Employee Console login
->>>>>>> development
         process.login()  # Logging into employee console
         process.get_shifts()  # Gets information for shifts between dates
         process.login()  # Logging into Webadvisor
@@ -367,10 +349,6 @@ if __name__ == '__main__':
             filemode='w'
         )
     finally:
-<<<<<<< HEAD
-        logging.info(json.dumps(process.formatted_time, sort_keys=True, indent=4))
-=======
         logging.info(json.dumps(process.shifts, sort_keys=True, indent=4))
->>>>>>> development
         if process.browser_obj:
             process.browser_obj.quit()  # Closing browser
