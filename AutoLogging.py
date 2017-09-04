@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+__author__ = 'Akeem King'
+
+"""
+This is a python script that is used for automating my time logging for my job's
+timesheet.
+"""
+
 
 import getpass
 import json
