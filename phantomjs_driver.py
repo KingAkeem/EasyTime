@@ -84,9 +84,9 @@ class PhantomJSDriver(object):
                     'phantomjs-2.1.1-windows.zip'
                 )
             )  # Recent PhantomJS driver
-            zip_target_path = f('C:\\Users\\{getlogin()}\\Downloads\\phantomjs-2.1.1-windows.zip')  # Download path
-            link = url
             file_name = 'phantomjs-2.1.1-windows.zip'
+            zip_target_path = f'C:\\Users\\{getlogin()}\\Downloads\\{file_name}'  # Download path
+            link = url
             with open(file_name, 'wb') as f:
                 print(f'Downloading {file_name}')
                 response = requests.get(link, stream=True)
@@ -97,17 +97,17 @@ class PhantomJSDriver(object):
                 else:
                     dl = 0
                     total_length = int(total_length)
-                    for data in response.iter_content(chunk_size=4096):
+                    for data in response.iter_content(chunk_size=1024):
                         dl += len(data)
                         f.write(data)
                         done = int(50 * dl / total_length)
                         sys.stdout.write('\r[%s%s]' % ('=' * done, ' ' * (50 - done)))
-                        sys.stdout.flush()
-                        urllib.request.urlretrieve(url, zip_target_path)  # Downloads most recent phantom js driver to downloads directory
-                        zip_ref = zipfile.ZipFile(zip_target_path, 'r')
-                        file_target_path = f('C:\\Users\\getlogin()\\Downloads\\')
-                        zip_ref.extractall(file_target_path)
-                        zip_ref.close()
+                    sys.stdout.flush()
+                    urllib.request.urlretrieve(url, zip_target_path)  # Downloads most recent phantom js driver to downloads directory
+                    zip_ref = zipfile.ZipFile(zip_target_path, 'r')
+                    file_target_path = f'C:\\Users\\{getlogin()}\\Downloads\\'
+                    zip_ref.extractall(file_target_path)
+                    zip_ref.close()
                 print(f'You now have Phantom JS version 2.1.1 driver in {file_target_path}')
 
         # If OS is Linux
