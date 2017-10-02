@@ -28,7 +28,7 @@ class AutomateLogging(object):
     Class that automates logging hours into time entry website.
 
     Note:
-        Do not include the 'self' paramter in the 'Args' section
+        Do not include the 'self' parameter in the 'Args' section
 
     Args:
         driver_path (str): Path to PhantomJs driver executable
