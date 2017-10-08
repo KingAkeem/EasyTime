@@ -10,7 +10,7 @@ To get script onto your local machine, you can run 'git clone https://github.com
 
 Before running AutoLogging.py, you must install these packages first. These are the instructions for deb:
 
-pip install selenium scandir requests urllib
+pip install selenium scandir requests urllib zipfile
 
 ## Execution
 
