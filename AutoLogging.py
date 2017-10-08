@@ -40,10 +40,10 @@ class AutomateLogging(object):
 
     """
 
-    def __init__(self, driver_path):
+    def __init__(self):
 
-        self.browser_obj = webdriver.PhantomJS(driver_path)  # Headless browser
-        # self.browser_obj = webdriver.Chrome(driver_path)  # Test browser
+        self.browser_obj = webdriver.PhantomJS()  # Headless browser
+        # self.browser_obj = webdriver.Chrome()  # Test browser
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '
@@ -316,20 +316,21 @@ class AutomateLogging(object):
 
 if __name__ == '__main__':
 
-    driver = PhantomJSDriver()  # Creates a driver
-    path = driver.get_path()  # Finds path to phantomjs driver
-    if path is None:  # checks if phantomjs driver is present
-        answer = input('Do you want to download the most recent version of'
-                       'PhantomJS driver? Program will not be installed'
-                       'otherwise. (Y/N)')
+    try:
+        process = AutomateLogging() # Create automated logging object
+
+    except NameError:
+        answer = input('Do you want to download the most recent version of '
+                        'PhantomJS driver? Program will not be executed '
+                        'otherwise. (Y/N) ')
+        driver = PhantomJSDriver()
         if answer == 'y' or answer == 'Y':
-            path = driver.download_driver()  # downloads phantomjs driver
-            path = driver.get_path()  # finds new phantomjs driver path
+            driver.download_driver()  # downloads phantomjs driver
+            process = AutomateLogging()
         else:
             print('Program will be closed.')
             exit()  # Ends current program
 
-    process = AutomateLogging(path)   # Creating Automated Logging object
     try:
         webadvisor = 'https://webadvisor.coastal.edu'
         emp_console = 'https://coastal.edu/scs/employee'

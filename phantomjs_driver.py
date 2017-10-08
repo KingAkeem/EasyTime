@@ -112,7 +112,17 @@ class PhantomJSDriver(object):
 
         # If OS is Linux
         if self.curr_os == 'linux':
-            system(f'wget -N {url} -P ~/Downloads')
-            system('unzip ~/Downloads/phantomjs-2.1.1-windows.zip -d ~/Downloads/')
-            system('chmod u+x ~/Downloads/phantomjs-2.1.1-windows/bin/phantomjs.exe')
-            print('You now have Phantom JS version 2.1.1 driver in your ~/Downloads/ folder.')
+            url = '/'.join(
+                (
+                    'https://bitbucket.org',
+                    'ariya',
+                    'phantomjs',
+                    'downloads',
+                    'phantomjs-2.1.1-windows.zip'
+                )
+            )  # Recent PhantomJS driver
+            system(f'wget -N {url} -P .')
+            system('unzip phantomjs-2.1.1-windows.zip')
+            system('chmod u+x phantomjs-2.1.1-windows/bin/phantomjs.exe')
+            print('You now have Phantom JS version 2.1.1 driver in your current '
+                  'directory.')
