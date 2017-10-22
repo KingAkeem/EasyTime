@@ -22,7 +22,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from sys import exit
 
 
-class AutomateLogging(object):
+class AutomateLogging:
     """
 
     Class that automates logging hours into time entry website.
@@ -59,29 +59,42 @@ class AutomateLogging(object):
         :return: None
         """
 
-        self.browser_obj.find_element_by_id('LIST_VAR1_1').click()  # Clicking box to select most recent payperiod
+        # Clicking box to select most recent payperiod
+        self.browser_obj.find_element_by_id('LIST_VAR1_1').click()
         self.submit()  # Submitting checked box
 
         time_info = self.shifts  # Dictionary containing shift information
         processed_dates = []  # Dates that have already been processed
-        dates = self.browser_obj.find_elements_by_tag_name('p')  # Getting list of dates
+
+        # Getting list of dates
+        dates = self.browser_obj.find_elements_by_tag_name('p')
 
         # Loops over dates and sends text to input boxes that match dates
         for d in dates:
             tag_name = d.get_attribute('id')
             curr_date = d.text
 
-            # If value is a date then split it and join back in a usable format '%Y-%m-%d' and get current column number
+            # If value is a date then split it and join back in a the format of
+            # '%Y-%m-%d' and gets the current column number
             if 'DATE' in tag_name:
                 month, day, year = curr_date.split('/')
                 curr_date = '-'.join(('20' + year, month, day))
                 column_no = tag_name.split('_')[-1]
 
             if 'LIST2' in tag_name and curr_date in self.shifts:
-                time_in = self.browser_obj.find_element_by_id('LIST_VAR4_' + column_no)
-                time_out = self.browser_obj.find_element_by_id('LIST_VAR5_' + column_no)
+                time_in = self.browser_obj.find_element_by_id(
+                    'LIST_VAR4_' + column_no
+                )
+                time_out = self.browser_obj.find_element_by_id(
+                    'LIST_VAR5_' + column_no
+                )
 
-                if curr_date in processed_dates and len(time_info[curr_date]) == 2:
+                if (
+                    # Checking if date was processed
+                    curr_date in processed_dates
+                    # and if date contains two shifts
+                    and len(time_info[curr_date]) == 2
+                ):
                     time_in.send_keys(time_info[curr_date][1]['Time-In'])
                     time_out.send_keys(time_info[curr_date][1]['Time-Out'])
                 elif curr_date not in processed_dates:
@@ -89,15 +102,17 @@ class AutomateLogging(object):
                     time_out.send_keys(time_info[curr_date][0]['Time-Out'])
                 processed_dates.append(curr_date)  # Caching dates
 
+        # Timesheet will not be finalized if the day is equal to/past the
+        # last day on the timesheet or if you press any other key besides y.
         date_currently = str(date.today())
         ans = input('Would you like to finalize your time sheet? (Y/N) ')
         date_last = self.last_day
         if ans == 'y' or ans == 'Y' and date_currently >= date_last:
-            print(date_last)
             print('Your timesheet has been finalized.')
-            # self.browser_obj.find_element_by_id('VAR5').click()  # Checks box to finalize timesheet
+            # Checks box to finalize timesheet
+            self.browser_obj.find_element_by_id('VAR5').click()
         else:
-            print('Your timesheet has not been finalized.')  # Used double quotes because conjunction
+            print('Your timesheet has not been finalized.')
 
     def recent_pay_period(self):
         """Finds first and lates date of most recent payperiod by ID
@@ -110,10 +125,16 @@ class AutomateLogging(object):
             'DATE_LIST_VAR2_1'
         ).text  # Last day of pay period
         self.current_day = datetime.today().strftime('%Y-%m-%d')  # Current Day
-        self.first_day = self.first_day[0:6] + '20' + self.first_day[6:8]  # Making two digit year into four digits eg. 17 -> 2017
-        self.last_day = self.last_day[0:6] + '20' + self.last_day[6:8]  # Making two digit year into four digits eg. 17 -> 2017
-        self.first_day = datetime.strptime(self.first_day, '%m/%d/%Y').strftime('%Y-%m-%d')  # Formatting start date eg. Y-m-d
-        self.last_day = datetime.strptime(self.last_day, '%m/%d/%Y').strftime('%Y-%m-%d')
+        # Making two digit year into four digits eg. 17 -> 2017
+        self.first_day = self.first_day[0:6] + '20' + self.first_day[6:8]
+        # Making two digit year into four digits eg. 17 -> 2017
+        self.last_day = self.last_day[0:6] + '20' + self.last_day[6:8]
+        self.first_day = datetime.strptime(self.first_day, '%m/%d/%Y').strftime(
+            '%Y-%m-%d'
+        )  # Formatting start date eg. Y-m-d
+        self.last_day = datetime.strptime(self.last_day, '%m/%d/%Y').strftime(
+            '%Y-%m-%d'
+        )  # Same as previous
 
     def get_hours(self):
 
@@ -134,24 +155,42 @@ class AutomateLogging(object):
             return self.shifts  # Returns shifts if it already exists
         except AttributeError:
             self.shifts = dict()
-            self.browser_obj.maximize_window()  # Enlarges window to maximum size
 
-            # Webdriver explicitly waits up until 10 seoncds or when it finds the chosen element by id then it moves to
+            # Enlarges window to maximum size
+            self.browser_obj.maximize_window()
+
+            # Webdriver explicitly waits up until 10 seoncds or when it finds
+            # the chosen element by id then it moves to
             # the element and sends data
             wait = WebDriverWait(self.browser_obj, 10)
-            wait.until(expected_conditions.presence_of_all_elements_located((By.ID, 'from')))
+            wait.until(expected_conditions.presence_of_all_elements_located((
+                By.ID, 'from'
+            )))
+
             from_date = self.browser_obj.find_element_by_id('from')
-            ActionChains(self.browser_obj).move_to_element(from_date).click().send_keys(self.first_day).perform()
-            wait.until(expected_conditions.presence_of_all_elements_located((By.ID, 'to')))
+            ActionChains(self.browser_obj).move_to_element(
+                from_date).click().send_keys(self.first_day).perform()
+
+            wait.until(expected_conditions.presence_of_all_elements_located((
+                By.ID, 'to'
+            )))
+
             to_date = self.browser_obj.find_element_by_id('to')
-            ActionChains(self.browser_obj).move_to_element(to_date).click().send_keys(self.last_day).perform()
+            ActionChains(self.browser_obj).move_to_element(
+                to_date).click().send_keys(self.last_day).perform()
             self.submit()  # Submit dates
 
-            # Waiting for JavaScript text to be generated and then assigning the text to self.shifts
-            wait.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, 'tableHead')))
-            self.shifts_text = self.browser_obj.find_element_by_id('reportContent').text
-            # Loops through unformatted text of self.shifts and puts them into a more useful data container
-            for text in self.shifts_text.splitlines()[1:-1]: # Used [1:-1] to ignore header and footer in list from splitting
+            # Waiting for JavaScript text to be generated and then assigning
+            # the text to self.shifts
+            wait.until(expected_conditions.presence_of_element_located((
+                By.CLASS_NAME, 'tableHead'
+            )))
+            self.shifts_text = self.browser_obj.find_element_by_id(
+                'reportContent').text
+            # Loops through unformatted text of self.shifts and puts them into
+            # a dict with list as shifts
+            # Used [1:-1] to ignore header and footer in list from splitting
+            for text in self.shifts_text.splitlines()[1:-1]:
                 line = text.split()
                 if len(line) == 9:
                     name = line[0] + ' ' + line[1]
@@ -195,11 +234,14 @@ class AutomateLogging(object):
         :return: URL of chosen option
         """
 
-        # Opens Employee Menu of Webadvisor by getting the URL using the class name and opening it
-        emp_menu = self.browser_obj.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
+        # Opens Employee Menu of Webadvisor by getting the URL using the class
+        # name and opening it
+        emp_menu = self.browser_obj.find_element_by_class_name(
+            'XWBEM_Bars').get_attribute('href')
         self.browser_obj.get(emp_menu)
 
-        # Finds all elements of the submenu and creates an empty dictionary to store their name and url
+        # Finds all elements of the submenu and creates an empty dictionary to
+        # store their name and url
         sub_menu = self.browser_obj.find_elements_by_class_name('submenu')
         emp_options = {}
 
@@ -207,34 +249,42 @@ class AutomateLogging(object):
         for item in sub_menu:
             emp_options[item.text] = item.get_attribute('href')
 
-        self.browser_obj.get(emp_options['Time Entry'])  # opening page based on user option eg. 'Time Entry'
+        # Opening page based on user option eg. 'Time Entry'
+        self.browser_obj.get(emp_options['Time Entry'])
 
-        self.browser_obj.find_element_by_class_name('left').find_elements_by_tag_name('a')  # Finds urls for time entry
+        self.browser_obj.find_element_by_class_name(
+            'left').find_elements_by_tag_name('a')  # Finds urls for time entry
 
-        # Get's all url for time entry options and creates empty dictionary to store them
+        # Get's all url for time entry options
         menu_options = self.browser_obj.find_elements_by_tag_name('a')
-        options = {}
+        options = dict()
 
         # Stores name and url pairs into dictionary
         for option in menu_options:
             options[option.text] = option.get_attribute('href')
 
-        self.browser_obj.get(options['Time entry'])  # Opens page of usr chosen option eg. 'Time entry' page
+        # Opens page of usr chosen option eg. 'Time entry' page
+        self.browser_obj.get(options['Time entry'])
 
-        self.first_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR1_1').text  # First day of pay period
-        self.last_day = self.browser_obj.find_element_by_id('DATE_LIST_VAR2_1').text  # Last day of pay period
-
+        self.first_day = self.browser_obj.find_element_by_id(
+            'DATE_LIST_VAR1_1').text  # First day of pay period
+        self.last_day = self.browser_obj.find_element_by_id(
+            'DATE_LIST_VAR2_1').text  # Last day of pay period
 
     def login(self):
         """
-        Void method that inputs username and password for employee console/webadvisor
+        Void method that inputs username and password for employee console
 
         :param self: Current Selenium phantomjs driver instance in use
         :return: None
         """
 
-        # If url is webadvisor or Employee Console than next page will be Webadvisor Login page
-        if 'webadvisor' in self.browser_obj.current_url or 'intranet' in self.browser_obj.current_url:
+        # If url is webadvisor or Employee Console than next page will be
+        # Webadvisor Login page
+        if (
+            'webadvisor' in self.browser_obj.current_url
+            or 'intranet' in self.browser_obj.current_url
+        ):
             try:
                 self.browser_obj.get(self.page_urls['Log In'])
             except KeyError:
@@ -269,13 +319,16 @@ class AutomateLogging(object):
         username_warning = 'Username not found'
         password_warning = 'You entered an invalid password'
         if username_warning in response:
-            print('Username not found. Please be sure to enter the username in all lower case. Please try again.')
+            print('Username not found. Please be sure to enter the username in',
+                  'all lower case. Please try again.')
             self.username = input('Username: ')
             self.password = getpass.getpass()  # Defaults to 'Password: '
             self.login()
         if password_warning in response:
-            print('You entered an invalid password. Passwords are case sensitive and have at least one upper case',
-                  'character, one lower case character and one number if created after July 2007. Please try again.')
+            print('You entered an invalid password. Passwords are case',
+                  'sensitive and have at least one upper case',
+                  'character, one lower case character and one number if',
+                  'created after July 2007. Please try again.')
             self.username = input('Username: ')
             self.password = getpass.getpass()  # Defaults to 'Password: '
             self.login()
@@ -288,7 +341,8 @@ class AutomateLogging(object):
         :return: None
         """
 
-        # If url is not webadvisor then use one of these two submit buttons otherwise use webadvisor submit button
+        # If url is not webadvisor then use one of these two submit buttons
+        # otherwise use webadvisor submit button
         if 'webadvisor' not in self.browser_obj.current_url:
             try:
                 btn = WebDriverWait(self.browser_obj, 10).until(
@@ -317,12 +371,13 @@ class AutomateLogging(object):
 if __name__ == '__main__':
 
     try:
-        process = AutomateLogging() # Create automated logging object
-
+        process = AutomateLogging()  # Create automated logging object
     except NameError:
-        answer = input('Do you want to download the most recent version of '
-                        'PhantomJS driver? Program will not be executed '
-                        'otherwise. (Y/N) ')
+        answer = input(
+            'Do you want to download the most recent version of',
+            'PhantomJS driver? Program will not be executed '
+            'otherwise. (Y/N) '
+        )
         driver = PhantomJSDriver()
         if answer == 'y' or answer == 'Y':
             driver.download_driver()  # downloads phantomjs driver
