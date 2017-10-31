@@ -11,6 +11,7 @@ timesheet.
 import getpass
 import json
 import logging
+from webdriver_manager.chrome import ChromeDriverManager
 from datetime import date, datetime
 from phantomjs_driver import PhantomJSDriver
 from selenium import webdriver
@@ -43,7 +44,8 @@ class AutomateLogging:
     def __init__(self):
 
         self.browser_obj = webdriver.PhantomJS()  # Headless browser
-        # self.browser_obj = webdriver.Chrome()  # Test browser
+        # Test browser
+        # self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '
@@ -59,6 +61,9 @@ class AutomateLogging:
         :return: None
         """
 
+        WebDriverWait(self.browser_obj, 240).until(
+            expected_conditions.title_is('Time entry')
+        )
         # Clicking box to select most recent payperiod
         self.browser_obj.find_element_by_id('LIST_VAR1_1').click()
         self.submit()  # Submitting checked box
@@ -401,7 +406,7 @@ if __name__ == '__main__':
         process.fill_timesheet()  # Filling time sheet within date range
         process.submit()  # Submits timesheet based on date
         hours = process.get_hours()
-        print(f"You've worked {hours} hours.")
+        print("You've worked {hours} hours.".format(hours=hours))
         input('Press any key to end ...')
 
         # Logs times that were entered into a log sheet in the current working
