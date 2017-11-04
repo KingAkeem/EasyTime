@@ -8,7 +8,7 @@ To get script onto your local machine, you can run 'git clone https://github.com
 Please refer to 'requirements.txt'
 
 ## Execution
-Whenever you need to execute the script you can either run ./path/to/core.py or python /path/to/core.py
+Whenever you need to execute the script you can either run ./path/to/core.py or python /path/to/core.py. Also If you'd like to see the what the program is doing while running, you can pass "-chrome" flag to open an autmoated chrome browser session and watch the script in action. 
 
 
 ## Authors

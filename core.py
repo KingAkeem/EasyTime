@@ -13,14 +13,21 @@ import json
 import logging
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import date, datetime
-from phantomjs_driver import PhantomJSDriver
+from helpers.phantomjs_driver import get_path
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
-from sys import exit
+from sys import platform, argv
+
+curr_os = platform
+if curr_os == 'win32' or curr_os == 'linux':
+    exe = 'phantomjs.exe'
+
+elif curr_os == 'darwin':
+    exe = 'phantomjs'
 
 
 class AutomateLogging:
@@ -42,10 +49,12 @@ class AutomateLogging:
     """
 
     def __init__(self):
-
-        self.browser_obj = webdriver.PhantomJS()  # Headless browser
-        # Test browser
-        # self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
+        if argv[1] == '-chrome':
+            # Chrome Browser
+            self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
+        else:
+            # Headless Browser
+            self.browser_obj = webdriver.PhantomJS(get_path(exe))
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '
@@ -375,21 +384,7 @@ class AutomateLogging:
 
 if __name__ == '__main__':
 
-    try:
-        process = AutomateLogging()  # Create automated logging object
-    except NameError:
-        answer = input(
-            'Do you want to download the most recent version of',
-            'PhantomJS driver? Program will not be executed '
-            'otherwise. (Y/N) '
-        )
-        driver = PhantomJSDriver()
-        if answer == 'y' or answer == 'Y':
-            driver.download_driver()  # downloads phantomjs driver
-            process = AutomateLogging()
-        else:
-            print('Program will be closed.')
-            exit()  # Ends current program
+    process = AutomateLogging()
 
     try:
         webadvisor = 'https://webadvisor.coastal.edu'
