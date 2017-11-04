@@ -49,10 +49,11 @@ class AutomateLogging:
     """
 
     def __init__(self):
-        if argv[1] == '-chrome':
-            # Chrome Browser
-            self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
-        else:
+        try:
+            if argv[1] == '-chrome':
+                # Chrome Browser
+                self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
+        except IndexError:
             # Headless Browser
             self.browser_obj = webdriver.PhantomJS(get_path(exe))
         self.page_urls = {}  # Dictionary containing page urls
