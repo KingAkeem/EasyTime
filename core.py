@@ -22,13 +22,6 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 from sys import platform, argv
 
-curr_os = platform
-if curr_os == 'win32' or curr_os == 'linux':
-    exe = 'phantomjs.exe'
-
-elif curr_os == 'darwin':
-    exe = 'phantomjs'
-
 
 class AutomateLogging:
     """
@@ -49,12 +42,21 @@ class AutomateLogging:
     """
 
     def __init__(self):
-        if argv[1] == '-chrome':
-            # Chrome Browser
-            self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
-        else:
+
+        if platform == 'win32' or platform == 'linux':
+            exe = 'phantomjs.exe'
+
+        elif platform == 'darwin':
+            exe = 'phantomjs'
+        try:
+            if argv[1] == '-chrome':
+                # Chrome Browser
+                self.browser_obj = webdriver.Chrome(
+                    ChromeDriverManager().install())
+        except IndexError:
             # Headless Browser
-            self.browser_obj = webdriver.PhantomJS(get_path(exe))
+            get_path(exe)
+            self.browser_obj = webdriver.PhantomJS()
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
         self.password = getpass.getpass()  # Defaults to 'Password: '

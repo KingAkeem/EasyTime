@@ -12,7 +12,7 @@ import urllib.request
 import zipfile
 from os import getlogin, system
 from os.path import join
-from sys import exit
+from sys import exit, platform
 
 VERSION = '2.1.1'
 
@@ -30,7 +30,7 @@ def confirm():
                 exit()
 
 
-def get_path(curr_os, exe):
+def get_path(exe):
     """
     Function that searches OS and finds phanthom js driver file then returns
     it if it exists
@@ -40,7 +40,7 @@ def get_path(curr_os, exe):
 
     # If operating system is Windows then begin search using scandir at User
     # level
-    if curr_os == 'win32':
+    if platform == 'win32':
         for root, dirs, files in walk('C:\\Users\\'):
             print('Searching: {root}'.format(root=root))
             if exe in files or exe in root:
@@ -49,9 +49,9 @@ def get_path(curr_os, exe):
                 return path
         else:
             if confirm() == 'YES':
-                download_driver(curr_os)
+                download_driver()
 
-    if curr_os == 'linux':
+    if platform == 'linux':
         for root, dirs, files in walk('/home/{user}/'.format(
             user=getpass.getuser()
         )):
@@ -62,9 +62,9 @@ def get_path(curr_os, exe):
                 return path
         else:
             if confirm() == 'YES':
-                download_driver(curr_os)
+                download_driver()
 
-    if curr_os == 'darwin':
+    if platform == 'darwin':
         for root, dirs, files in walk('/Users/'):
             print('Searching: {root}'.format(root=root))
             if exe in files or exe in root:
@@ -73,10 +73,10 @@ def get_path(curr_os, exe):
                 return path
         else:
             if confirm() == 'YES':
-                download_driver(curr_os)
+                download_driver()
 
 
-def download_driver(curr_os):
+def download_driver():
     """
 Downloads most recent phanthom js driver depending on OS
 
@@ -94,7 +94,7 @@ Downloads most recent phanthom js driver depending on OS
     )  # Recent PhantomJS driver
 
     # If OS is Windows
-    if curr_os == 'win32':
+    if platform == 'win32':
         file_name = 'phantomjs-version-windows.zip'.format(version=VERSION)
         zip_target_path = 'C:\\Users\\{login}\\Downloads\\{f}'.format(
             login=getlogin(), f=file_name)  # Download path
@@ -127,7 +127,7 @@ Downloads most recent phanthom js driver depending on OS
                   '{f_t}'.format(version=VERSION, f_t=file_target_path))
 
     # If OS is Linux
-    if curr_os == 'linux':
+    if platform == 'linux':
         system('wget -N {url} -P .'.format(url=url))
         system('unzip phantomjs-2.1.1-windows.zip')
         system('chmod u+x phantomjs-2.1.1-windows/bin/phantomjs.exe')
