@@ -42,6 +42,7 @@ class AutomateLogging:
     """
 
     def __init__(self):
+<<<<<<< HEAD
 
         if platform == 'win32' or platform == 'linux':
             exe = 'phantomjs.exe'
@@ -53,6 +54,12 @@ class AutomateLogging:
                 # Chrome Browser
                 self.browser_obj = webdriver.Chrome(
                     ChromeDriverManager().install())
+=======
+        try:
+            if argv[1] == '-chrome':
+                # Chrome Browser
+                self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
+>>>>>>> 7b870c6a9443f8da47f7a070a78aee043079d434
         except IndexError:
             # Headless Browser
             get_path(exe)
