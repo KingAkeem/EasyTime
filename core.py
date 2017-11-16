@@ -42,8 +42,12 @@ class AutomateLogging:
     """
 
     def __init__(self):
-<<<<<<< HEAD
+        self.browser_obj = None
+        self.page_urls = {}  # Dictionary containing page urls
+        self.username = input('Username: ')
+        self.password = getpass.getpass()  # Defaults to 'Password: '
 
+    def __enter__(self):
         if platform == 'win32' or platform == 'linux':
             exe = 'phantomjs.exe'
 
@@ -54,19 +58,15 @@ class AutomateLogging:
                 # Chrome Browser
                 self.browser_obj = webdriver.Chrome(
                     ChromeDriverManager().install())
-=======
-        try:
-            if argv[1] == '-chrome':
-                # Chrome Browser
-                self.browser_obj = webdriver.Chrome(ChromeDriverManager().install())
->>>>>>> 7b870c6a9443f8da47f7a070a78aee043079d434
         except IndexError:
             # Headless Browser
             get_path(exe)
             self.browser_obj = webdriver.PhantomJS()
-        self.page_urls = {}  # Dictionary containing page urls
-        self.username = input('Username: ')
-        self.password = getpass.getpass()  # Defaults to 'Password: '
+
+        return self
+
+    def __exit__(self, *args):
+        self.browser_obj.quit()
 
     def fill_timesheet(self):
         """
@@ -79,7 +79,7 @@ class AutomateLogging:
         :return: None
         """
 
-        WebDriverWait(self.browser_obj, 240).until(
+        WebDriverWait(self.browser_obj, 30).until(
             expected_conditions.title_is('Time entry')
         )
         # Clicking box to select most recent payperiod
@@ -393,11 +393,10 @@ class AutomateLogging:
 
 if __name__ == '__main__':
 
-    process = AutomateLogging()
+    webadvisor = 'https://webadvisor.coastal.edu'
+    emp_console = 'https://coastal.edu/scs/employee'
 
-    try:
-        webadvisor = 'https://webadvisor.coastal.edu'
-        emp_console = 'https://coastal.edu/scs/employee'
+    with AutomateLogging() as process:
         process.browser_obj.get(webadvisor)  # Opening Webadvisor homepage
         process.login()  # Logging in into Webadvisor
         process.entry_menu()  # Opening Time Entry menu
@@ -420,7 +419,4 @@ if __name__ == '__main__':
             level=logging.INFO,
             filemode='w'
         )
-    finally:
         logging.info(json.dumps(process.shifts, sort_keys=True, indent=4))
-        if process.browser_obj:
-            process.browser_obj.quit()  # Closing browser
