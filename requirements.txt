@@ -1,0 +1,4 @@
+webdriver_manager==1.4.5
+selenium==3.7.0
+requests==2.18.4
+scandir==1.6
