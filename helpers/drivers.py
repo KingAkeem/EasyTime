@@ -1,30 +1,62 @@
 #! /usr/bin/env python3
 
-try:
-    from scandir import walk
 
-except ImportError:
-    from os import walk
 
-import requests
-import sys
-import wget
-import urllib.request
-import zipfile
 import os
+import shutil
+import wget
+import zipfile
+
 from sys import platform
 
 CHROME_VERSION = '2.34'
 PHANTOMJS_VERSION = '2.1.1'
+_LINUX_HOME = os.path.join('/home', os.getlogin())
+_WINDOWS_HOME = os.path.join('C:', 'Users', os.getlogin())
 
-def _give_exe_permissions(path):
+
+def _find_path(driver):
     """
-    Gives execution permissions to this path, while keeping other permissions
+    Function that searches OS and finds phantom js driver file then returns
 
-    :param path: Path to give permission
+    it if it exists
+
+    :return: path of phanthom js driver on OS
     """
 
-    os.chmod(path, 0o777)
+    try:
+        from scandir import walk
+
+    except ImportError:
+        from os import walk
+
+    # If operating system is Windows then begin search using scandir at User
+    # level
+    if platform == 'win32':
+        for root, dirs, files in walk(_WINDOWS_HOME):
+            print('Searching: {root}'.format(root=root))
+            if driver in files or driver in root:
+                path = os.path.join(root, driver)
+                print('Found: {path}'.format(path=path))
+                return path
+
+    elif platform == 'linux':
+        for root, dirs, files in walk(_LINUX_HOME):
+            print('Searching: {root}'.format(root=root))
+            if driver in files or driver in root:
+                path = os.path.join(root, driver)
+                print('Found: {path}'.format(path=path))
+                return path
+
+    elif platform == 'darwin':
+        for root, dirs, files in walk('/Users/'):
+            print('Searching: {root}'.format(root=root))
+            if driver in files or driver in root:
+                path = os.path.join(root, driver)
+                print('Found: {path}'.format(path=path))
+                return path
+
+    return False
 
 class PhantomJSDriver:
 
@@ -32,62 +64,32 @@ class PhantomJSDriver:
 
         self._driver_file = '-'.join(('phantomjs', PHANTOMJS_VERSION, 'windows.zip'))
 
-        if platform == 'win32' or platform == 'linux':
-            self.__exe = 'phantomjs.exe'
-            self._LINUX_HOME = os.path.join('/home', os.getlogin())
-            self._cache_dir = os.path.join(self._LINUX_HOME, '.phantomjs')
+        if platform == 'linux':
+            self._cache_dir = os.path.join(_LINUX_HOME, '.phantomjs')
+            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin',
+                                            'phantomjs.exe')
+
+        elif platform == 'win32':
+            self._exe = 'phantomjs.exe'
+            self._cache_dir = os.path.join(_WINDOWS_HOME, '.phantomjs')
             self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin', 'phantomjs.exe')
 
         elif platform == 'darwin':
-            self.__exe = 'phantomjsdiver'
+            self._exe = 'phantomjsdriver'
 
         if os.path.isdir(self._cache_dir) and 'bin' in os.listdir(self._cache_dir):
-
             self._path = self._cache_file
-
         else:
-            self._find_path()
+            self._path = _find_path('phantomjs.exe')
+
 
     def get_path(self):
 
-        return self._path
-
-    def _find_path(self):
-        """
-        Function that searches OS and finds phantom js driver file then returns
-
-        it if it exists
-
-        :return: path of phanthom js driver on OS
-        """
-
-        found = False
-
-        # If operating system is Windows then begin search using scandir at User
-        # level
-        if platform == 'win32':
-            for root, dirs, files in walk('C:\\Users\\'):
-                print('Searching: {root}'.format(root=root))
-                if self.__exe in files or self.__exe in root:
-                    self._path = os.path.join(root, self.__exe)
-                    print('Found: {path}'.format(path=self._path))
-
-        elif platform == 'linux':
-            for root, dirs, files in walk(self._LINUX_HOME):
-                print('Searching: {root}'.format(root=root))
-                if self.__exe in files or self.__exe in root:
-                    self._path = os.path.join(root, self.__exe)
-                    print('Found: {path}'.format(path=self._path))
-
-        elif platform == 'darwin':
-            for root, dirs, files in walk('/Users/'):
-                print('Searching: {root}'.format(root=root))
-                if self.__exe in files or self.__exe in root:
-                    self._path = os.path.join(root, self.__exe)
-                    print('Found: {path}'.format(path=self._path))
-
-        if not found:
+        if os.path.isfile(self._path):
+            return self._path
+        else:
             self._download_driver()
+            return self._path
 
     def _download_driver(self):
         """
@@ -108,34 +110,7 @@ class PhantomJSDriver:
 
         # If OS is Windows
         if platform == 'win32':
-            file_name = 'phantomjs-version-windows.zip'.format(version=PHANTOMJS_VERSION)
-            zip_target_path = 'C:\\Users\\{login}\\Downloads\\{f}'.format(
-                login=os.getlogin(), f=file_name)  # Download path
-            link = url
-            with open(file_name, 'wb') as f:
-                print('Downloading {f}'.format(f=file_name))
-                response = requests.get(link, stream=True)
-                total_length = response.headers.get('content-length')
-
-                if total_length is None:  # no content length header
-                    f.write(response.content)
-                else:
-                    dl = 0
-                    total_length = int(total_length)
-                    for data in response.iter_content(chunk_size=1024):
-                        dl += len(data)
-                        f.write(data)
-                        done = int(50 * dl / total_length)
-                        sys.stdout.write(
-                            '\r[%s%s]' % ('=' * done, ' ' * (50 - done))
-                        )
-                    sys.stdout.flush()
-                    urllib.request.urlretrieve(url, zip_target_path)
-                    zip_ref = zipfile.ZipFile(zip_target_path, 'r')
-                    file_target_path = 'C:\\Users\\{login}\\Downloads\\'.format(
-                        login=os.getlogin())
-                    zip_ref.extractall(file_target_path)
-
+            pass
 
         # If OS is Linux
         if platform == 'linux':
@@ -150,6 +125,83 @@ class PhantomJSDriver:
             with zipfile.ZipFile(self._driver_file) as zip_ref:
                 zip_ref.extractall(self._cache_dir)
 
-            _give_exe_permissions(self._cache_file)
+            os.chmod(self._cache_file, 0o777)
+            os.remove(self._driver_file)
+
+            if 'ghostdriver.log' in os.listdir():
+                shutil.move('ghostdriver.log', self._cache_dir)
+                os.remove('ghostdriver.log')
+
+            self._path = os.path.join(self._cache_file)
+
+
+class ChromeDriver:
+
+    def __init__(self):
+
+        if platform == 'linux':
+            self._driver_file = 'chromedriver_linux64.zip'
+            self._exe = 'chromedriver'
+            self._LINUX_HOME = os.path.join('/home', os.getlogin())
+            self._cache_dir = os.path.join(_LINUX_HOME, '.chrome')
+            self._cache_file = os.path.join(self._cache_dir, self._exe)
+
+        if platform == 'win32':
+            self._exe = 'chromedriver.exe'
+            self._WINDOWS_HOME = os.path.join('C:', 'Users', os.getlogin())
+            self._cache_dir = os.path.join(self._WINDOWS_HOME_HOME, '.chrome')
+            self._cache_file = os.path.join(self._cache_dir, self._exe)
+
+        elif platform == 'darwin':
+            self._exe = 'chromedriver'
+
+        if os.path.isdir(self._cache_dir) and 'bin' in os.listdir(self._cache_dir):
+
+            self._path = self._cache_file
+
+        else:
+           self._path = _find_path(self._exe)
+
+    def get_path(self):
+
+        if os.path.isfile(self._path):
+            return self._path
+        else:
+            self._download_driver()
+            return self._path
+
+    def _download_driver(self):
+        """
+    Downloads most recent phanthom js driver depending on OS
+
+    :return: None
+        """
+
+        url = '/'.join(
+            (
+                'https://chromedriver.storage.googleapis.com',
+                '{version}'.format(version=CHROME_VERSION),
+                self._driver_file
+            )
+        )  # Recent PhantomJS driver
+
+        # If OS is Windows
+        if platform == 'win32':
+            pass
+
+        # If OS is Linux
+        if platform == 'linux':
+
+            if not os.path.isdir(self._cache_dir):
+                os.mkdir(self._cache_dir)
+
+            file_locations = os.listdir(self._cache_dir) + os.listdir()
+            if self._driver_file not in file_locations:
+                wget.download(url)
+
+            with zipfile.ZipFile(self._driver_file) as zip_ref:
+                zip_ref.extractall(self._cache_dir)
+
+            os.chmod(self._cache_file, 0o777)
             os.remove(self._driver_file)
             self._path = os.path.join(self._cache_file)
