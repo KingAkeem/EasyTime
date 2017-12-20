@@ -13,7 +13,7 @@ import json
 import logging
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import date, datetime
-from helpers.phantomjs_driver import get_path
+from helpers.drivers import PhantomJSDriver
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -45,23 +45,19 @@ class AutomateLogging:
         self.browser_obj = None
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
-        self.password = getpass.getpass()  # Defaults to 'Password: '
+        self.password = input('Password: ') #getpass.getpass()  # Defaults to 'Password: '
 
     def __enter__(self):
-        if platform == 'win32' or platform == 'linux':
-            exe = 'phantomjs.exe'
 
-        elif platform == 'darwin':
-            exe = 'phantomjs'
         try:
             if argv[1] == '-chrome':
                 # Chrome Browser
                 self.browser_obj = webdriver.Chrome(
                     ChromeDriverManager().install())
+
         except IndexError:
             # Headless Browser
-            get_path(exe)
-            self.browser_obj = webdriver.PhantomJS()
+            self.browser_obj = webdriver.PhantomJS(PhantomJSDriver().get_path())
 
         return self
 
