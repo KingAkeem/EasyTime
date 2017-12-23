@@ -1,7 +1,5 @@
 #! /usr/bin/env python3
 
-
-
 import os
 import shutil
 import wget
@@ -9,8 +7,6 @@ import zipfile
 
 from sys import platform
 
-CHROME_VERSION = '2.34'
-PHANTOMJS_VERSION = '2.1.1'
 _LINUX_HOME = os.path.join('/home', os.getlogin())
 _WINDOWS_HOME = os.path.join('C:', 'Users', os.getlogin())
 
@@ -21,7 +17,7 @@ def _find_path(driver):
 
     it if it exists
 
-    :return: path of phanthom js driver on OS
+    :return: path of phantom js driver on OS
     """
 
     try:
@@ -58,6 +54,10 @@ def _find_path(driver):
 
     return False
 
+
+PHANTOMJS_VERSION = '2.1.1'
+
+
 class PhantomJSDriver:
 
     def __init__(self):
@@ -65,14 +65,14 @@ class PhantomJSDriver:
         self._driver_file = '-'.join(('phantomjs', PHANTOMJS_VERSION, 'windows.zip'))
 
         if platform == 'linux':
+            self._exe = 'phantomjs.exe'
             self._cache_dir = os.path.join(_LINUX_HOME, '.phantomjs')
-            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin',
-                                            'phantomjs.exe')
+            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin', self._exe)
 
         elif platform == 'win32':
             self._exe = 'phantomjs.exe'
             self._cache_dir = os.path.join(_WINDOWS_HOME, '.phantomjs')
-            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin', 'phantomjs.exe')
+            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin', self._exe)
 
         elif platform == 'darwin':
             self._exe = 'phantomjsdriver'
@@ -80,8 +80,7 @@ class PhantomJSDriver:
         if os.path.isdir(self._cache_dir) and 'bin' in os.listdir(self._cache_dir):
             self._path = self._cache_file
         else:
-            self._path = _find_path('phantomjs.exe')
-
+            self._path = _find_path(self._exe)
 
     def get_path(self):
 
@@ -135,6 +134,9 @@ class PhantomJSDriver:
             self._path = os.path.join(self._cache_file)
 
 
+CHROME_VERSION = '2.34'
+
+
 class ChromeDriver:
 
     def __init__(self):
@@ -142,7 +144,6 @@ class ChromeDriver:
         if platform == 'linux':
             self._driver_file = 'chromedriver_linux64.zip'
             self._exe = 'chromedriver'
-            self._LINUX_HOME = os.path.join('/home', os.getlogin())
             self._cache_dir = os.path.join(_LINUX_HOME, '.chrome')
             self._cache_file = os.path.join(self._cache_dir, self._exe)
 
@@ -160,7 +161,7 @@ class ChromeDriver:
             self._path = self._cache_file
 
         else:
-           self._path = _find_path(self._exe)
+            self._path = _find_path(self._exe)
 
     def get_path(self):
 
@@ -172,7 +173,7 @@ class ChromeDriver:
 
     def _download_driver(self):
         """
-    Downloads most recent phanthom js driver depending on OS
+    Downloads most recent chrome driver depending on OS
 
     :return: None
         """

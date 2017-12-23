@@ -11,16 +11,15 @@ timesheet.
 import getpass
 import json
 import logging
-from webdriver_manager.chrome import ChromeDriverManager
 from datetime import date, datetime
-from helpers.drivers import PhantomJSDriver
+from helpers.drivers import PhantomJSDriver, ChromeDriver
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
-from sys import platform, argv
+from sys import argv
 
 
 class AutomateLogging:
@@ -45,20 +44,11 @@ class AutomateLogging:
         self.browser_obj = None
         self.page_urls = {}  # Dictionary containing page urls
         self.username = input('Username: ')
-        self.password = input('Password: ') #getpass.getpass()  # Defaults to 'Password: '
+        self.password = getpass.getpass()  # Defaults to 'Password: '
 
     def __enter__(self):
 
-        try:
-            if argv[1] == '-chrome':
-                # Chrome Browser
-                self.browser_obj = webdriver.Chrome(
-                    ChromeDriverManager().install())
-
-        except IndexError:
-            # Headless Browser
-            self.browser_obj = webdriver.PhantomJS(PhantomJSDriver().get_path())
-
+        self.browser_obj = webdriver.Chrome(ChromeDriver().get_path())
         return self
 
     def __exit__(self, *args):
@@ -72,7 +62,6 @@ class AutomateLogging:
 
         :param self: Current Selenium phantomjs driver instance in use
         :param last_date: Last date of the payperiod
-        :return: None
         """
 
         WebDriverWait(self.browser_obj, 30).until(
@@ -189,11 +178,6 @@ class AutomateLogging:
             from_date = self.browser_obj.find_element_by_id('from')
             ActionChains(self.browser_obj).move_to_element(
                 from_date).click().send_keys(self.first_day).perform()
-
-            wait.until(expected_conditions.presence_of_all_elements_located((
-                By.ID, 'to'
-            )))
-
             to_date = self.browser_obj.find_element_by_id('to')
             ActionChains(self.browser_obj).move_to_element(
                 to_date).click().send_keys(self.last_day).perform()
@@ -201,9 +185,11 @@ class AutomateLogging:
 
             # Waiting for JavaScript text to be generated and then assigning
             # the text to self.shifts
+            """
             wait.until(expected_conditions.presence_of_element_located((
                 By.CLASS_NAME, 'tableHead'
             )))
+            """
             self.shifts_text = self.browser_obj.find_element_by_id(
                 'reportContent').text
             # Loops through unformatted text of self.shifts and puts them into
@@ -300,10 +286,7 @@ class AutomateLogging:
 
         # If url is webadvisor or Employee Console than next page will be
         # Webadvisor Login page
-        if (
-            'webadvisor' in self.browser_obj.current_url
-            or 'intranet' in self.browser_obj.current_url
-        ):
+        if 'webadvisor' in self.browser_obj.current_url or 'intranet' in self.browser_obj.current_url:
             try:
                 self.browser_obj.get(self.page_urls['Log In'])
             except KeyError:
@@ -315,22 +298,14 @@ class AutomateLogging:
                 self.browser_obj.get(self.page_urls['Log In'])
 
         try:
-            # Finding input elements for username and password
-            uname = self.browser_obj.find_element_by_id('uname')
-            pword = self.browser_obj.find_element_by_id('pnum')
-            # Sending keys to elements
-            uname.send_keys(self.username)
-            pword.send_keys(self.password)
+            # Finds input elements for username and password
+            user_name = self.browser_obj.find_element_by_id('USER_NAME')
+            curr_pwd = self.browser_obj.find_element_by_id('CURR_PWD')
+            # Sends username and password to form
+            user_name.send_keys(self.username)
+            curr_pwd.send_keys(self.password)
         except NoSuchElementException:
-            try:
-                # Finds input elements for username and password
-                user_name = self.browser_obj.find_element_by_id('USER_NAME')
-                curr_pwd = self.browser_obj.find_element_by_id('CURR_PWD')
-                # Sends username and password to form
-                user_name.send_keys(self.username)
-                curr_pwd.send_keys(self.password)
-            except NoSuchElementException:
-                pass
+            pass
 
         self.submit()
 
@@ -364,7 +339,7 @@ class AutomateLogging:
         # otherwise use webadvisor submit button
         if 'webadvisor' not in self.browser_obj.current_url:
             try:
-                btn = WebDriverWait(self.browser_obj, 10).until(
+                btn = WebDriverWait(self.browser_obj, 3).until(
                     expected_conditions.visibility_of_element_located((
                         By.XPATH, "//input[@type='submit' and @value='Submit']")
                     )
@@ -372,14 +347,14 @@ class AutomateLogging:
                 btn.click()
             except (NoSuchElementException, TimeoutException):
 
-                btn = WebDriverWait(self.browser_obj, 10).until(
+                btn = WebDriverWait(self.browser_obj, 3).until(
                     expected_conditions.visibility_of_element_located((
                         By.XPATH, "//input[@type='button' and @value='Submit']")
                     )
                 )
                 btn.click()
         else:
-            btn = WebDriverWait(self.browser_obj, 10).until(
+            btn = WebDriverWait(self.browser_obj, 3).until(
                 expected_conditions.visibility_of_element_located((
                     By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
                 )
@@ -398,7 +373,9 @@ if __name__ == '__main__':
         process.entry_menu()  # Opening Time Entry menu
         process.recent_pay_period()  # Getting dates from most recent payperiod
         process.browser_obj.get(emp_console)  # Opening Employee Console login
-        process.login()  # Logging into employee console
+        WebDriverWait(process.browser_obj, 600).until(
+            expected_conditions.presence_of_element_located((By.ID, 'from'))
+        )
         process.get_shifts()  # Gets information for shifts between dates
         process.login()  # Logging into Webadvisor
         process.entry_menu()  # Opening Time Entry Menu
