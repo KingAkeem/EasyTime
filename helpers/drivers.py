@@ -12,45 +12,37 @@ _WINDOWS_HOME = os.path.join('C:', 'Users', os.getlogin())
 
 
 def _find_path(driver):
-    """
-    Function that searches OS and finds phantom js driver file then returns
+    """Finds path of driver
 
-    it if it exists
+    Searches directories until path to driver is found, if it is not found then
+    False is returned.
 
-    :return: path of phantom js driver on OS
+    Args:
+        driver: file name of driver
+
+    Returns:
+        path: path to file
+
     """
 
     try:
         from scandir import walk
-
     except ImportError:
         from os import walk
 
-    # If operating system is Windows then begin search using scandir at User
-    # level
     if platform == 'win32':
-        for root, dirs, files in walk(_WINDOWS_HOME):
-            print('Searching: {root}'.format(root=root))
-            if driver in files or driver in root:
-                path = os.path.join(root, driver)
-                print('Found: {path}'.format(path=path))
-                return path
-
+        search_dir = _WINDOWS_HOME
     elif platform == 'linux':
-        for root, dirs, files in walk(_LINUX_HOME):
-            print('Searching: {root}'.format(root=root))
-            if driver in files or driver in root:
-                path = os.path.join(root, driver)
-                print('Found: {path}'.format(path=path))
-                return path
-
+        search_dir = _LINUX_HOME
     elif platform == 'darwin':
-        for root, dirs, files in walk('/Users/'):
-            print('Searching: {root}'.format(root=root))
-            if driver in files or driver in root:
-                path = os.path.join(root, driver)
-                print('Found: {path}'.format(path=path))
-                return path
+        search_dir = '/Users/'
+
+    for root, dirs, files in walk(search_dir):
+        print('Searching: {root}'.format(root=root))
+        if driver in files or driver in root:
+            path = os.path.join(root, driver)
+            print('Found: {path}'.format(path=path))
+            return path
 
     return False
 
@@ -61,29 +53,35 @@ PHANTOMJS_VERSION = '2.1.1'
 class PhantomJSDriver:
 
     def __init__(self):
-
-        self._driver_file = '-'.join(('phantomjs', PHANTOMJS_VERSION, 'windows.zip'))
+        self._driver_file = '-'.join(('phantomjs',
+                                      PHANTOMJS_VERSION,
+                                      'windows.zip'))
 
         if platform == 'linux':
             self._exe = 'phantomjs.exe'
             self._cache_dir = os.path.join(_LINUX_HOME, '.phantomjs')
-            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin', self._exe)
+            _file_no_ext = self._driver_file.replace('.zip', '')
+            self._cache_file = os.path.join(self._cache_dir, _file_no_ext,
+                                            'bin', self._exe)
 
         elif platform == 'win32':
             self._exe = 'phantomjs.exe'
             self._cache_dir = os.path.join(_WINDOWS_HOME, '.phantomjs')
-            self._cache_file = os.path.join(self._cache_dir, self._driver_file.replace('.zip', ''), 'bin', self._exe)
+            _file_no_ext = self._driver_file.replace('.zip', '')
+            self._cache_file = os.path.join(self._cache_dir, _file_no_ext,
+                                            'bin', self._exe)
 
         elif platform == 'darwin':
             self._exe = 'phantomjsdriver'
 
-        if os.path.isdir(self._cache_dir) and 'bin' in os.listdir(self._cache_dir):
+        cache_dir_exists = os.path.isdir(self._cache_dir)
+        bin_exists = 'bin' in os.listdir(self._cache_dir)
+        if cache_dir_exists and bin_exists:
             self._path = self._cache_file
         else:
             self._path = _find_path(self._exe)
 
     def get_path(self):
-
         if os.path.isfile(self._path):
             return self._path
         else:
@@ -156,10 +154,10 @@ class ChromeDriver:
         elif platform == 'darwin':
             self._exe = 'chromedriver'
 
-        if os.path.isdir(self._cache_dir) and 'bin' in os.listdir(self._cache_dir):
-
+        cache_dir_exists = os.path.isdir(self._cache_dir)
+        bin_exists = 'bin' in os.listdir(self._cache_dir)
+        if cache_dir_exists and bin_exists:
             self._path = self._cache_file
-
         else:
             self._path = _find_path(self._exe)
 
@@ -173,9 +171,9 @@ class ChromeDriver:
 
     def _download_driver(self):
         """
-    Downloads most recent chrome driver depending on OS
+        Downloads most recent chrome driver depending on OS
 
-    :return: None
+        :return: None
         """
 
         url = '/'.join(

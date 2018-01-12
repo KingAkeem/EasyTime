@@ -2,12 +2,6 @@
 
 __author__ = 'Akeem King'
 
-"""
-This is a python script that is used for automating my time logging for my job's
-timesheet.
-"""
-
-
 import getpass
 import json
 import logging as log
@@ -15,6 +9,7 @@ from datetime import date, datetime
 from helpers.drivers import ChromeDriver
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as exp_cond
@@ -94,7 +89,6 @@ def recent_pay_period(driver):
     # First and last day of payperiod
     first_day = driver.find_element_by_id('DATE_LIST_VAR1_1').text
     last_day = driver.find_element_by_id('DATE_LIST_VAR2_1').text
-    current_day = datetime.today().strftime('%Y-%m-%d')
 
     # Making two digit year into four digits eg. 17 -> 2017
     first_day = first_day[0:6] + '20' + first_day[6:8]
@@ -186,6 +180,10 @@ def get_shifts(driver, first_day, last_day):
             }]
 
 
+def get_menu(driver):
+    return driver.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
+
+
 def entry_menu(driver):
     """
     Puts options of submenu into a dictionary
@@ -195,15 +193,10 @@ def entry_menu(driver):
     :return: URL of chosen option
     """
 
-    # Opens Employee Menu of Webadvisor by getting the URL using the class
-    # name and opening it
-    emp_menu = driver.find_element_by_class_name(
-        'XWBEM_Bars').get_attribute('href')
-    driver.get(emp_menu)
-
     # Finds all elements of the submenu and creates an empty dictionary to
     # store their name and url
     sub_menu = driver.find_elements_by_class_name('submenu')
+
     emp_options = {}
 
     # Creates a dictionary of name and url for menu options
@@ -227,9 +220,6 @@ def entry_menu(driver):
     # Opens page of usr chosen option eg. 'Time entry' page
     driver.get(options['Time entry'])
 
-    # First and last day of period
-    first_day = driver.find_element_by_id('DATE_LIST_VAR1_1').text
-    last_day = driver.find_element_by_id('DATE_LIST_VAR2_1').text
 
 
 def login(driver, username, password, page_urls):
@@ -330,15 +320,23 @@ if __name__ == '__main__':
         password = getpass.getpass()  # Defaults to 'Password: '
 
         exec_path = ChromeDriver().get_path()
-        driver = webdriver.Chrome(exec_path)
+        WINDOW = "1920,1080"
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--window-size={size}".format(size=WINDOW))
+        driver = webdriver.Chrome(exec_path, chrome_options=chrome_options)
         driver.get(webadvisor)  # Opening Webadvisor homepage
         # Logging in into Webadvisor
         login(driver, username, password, page_urls)
+        emp_menu = get_menu(driver)
+        driver.get(emp_menu)
         entry_menu(driver)  # Opening Time Entry menu
 
         # Getting dates from most recent payperiod
         first_day, last_day = recent_pay_period(driver)
 
+        driver.close()
+        driver = webdriver.Chrome(exec_path)
         driver.get(emp_console)  # Opening Employee Console login
         WebDriverWait(driver, 600).until(
             exp_cond.presence_of_element_located((By.ID, 'from'))
@@ -346,6 +344,7 @@ if __name__ == '__main__':
 
         shifts = get_shifts(driver, first_day, last_day)
         login(driver, username, password, page_urls)  # Logging into Webadvisor
+        driver.get(emp_menu)
         entry_menu(driver)  # Opening Time Entry Menu
         fill_timesheet(driver, shifts, last_day)
         submit(driver)  # Submits timesheet based on date
