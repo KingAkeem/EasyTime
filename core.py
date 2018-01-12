@@ -16,6 +16,8 @@ from selenium.webdriver.support import expected_conditions as exp_cond
 from selenium.webdriver.support.wait import WebDriverWait
 
 
+class EasyTime:
+
 def fill_timesheet(driver, shifts, last_day):
     """
     Void method that fills timesheet using the first and last date to
