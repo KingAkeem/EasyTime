@@ -22,7 +22,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from sys import argv
 
 
-class AutomateLogging:
+class EasyTime:
     """
 
     Class that automates logging hours into time entry website.
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     webadvisor = 'https://webadvisor.coastal.edu'
     emp_console = 'https://coastal.edu/scs/employee'
 
-    with AutomateLogging() as process:
+    with EasyTime() as process:
         process.browser_obj.get(webadvisor)  # Opening Webadvisor homepage
         process.login()  # Logging in into Webadvisor
         process.entry_menu()  # Opening Time Entry menu

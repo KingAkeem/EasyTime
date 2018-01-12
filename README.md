@@ -1,4 +1,4 @@
-# Automated Logging
+# Easy Time
 I'm lazy and I hate doing tedious tasks repeteadly, such as having to log my timesheet for work. We don't have an automated time entry system which means at the end of every two weeks I have to log all of my hours at once. So I decided to make  a program to do it for me. 
 
 ## Getting started
