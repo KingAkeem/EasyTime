@@ -7,16 +7,14 @@ import json
 import logging as log
 from datetime import date, datetime
 from helpers.drivers import ChromeDriver
+from helpers.actions import login, wait_for
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as exp_cond
 from selenium.webdriver.support.wait import WebDriverWait
 
-
-class EasyTime:
 
 def fill_timesheet(driver, shifts, last_day):
     """
@@ -28,7 +26,8 @@ def fill_timesheet(driver, shifts, last_day):
     :param last_date: Last date of the payperiod
     """
 
-    WebDriverWait(driver, 30).until(exp_cond.title_is('Time entry'))
+    WebDriverWait(driver, 10).until(exp_cond.visibility_of_element_located(
+                                    By.ID, 'LIST_VAR_1'))
     # Clicking box to select most recent payperiod
     driver.find_element_by_id('LIST_VAR1_1').click()
     submit(driver)  # Submitting checked box
@@ -128,7 +127,7 @@ def get_shifts(driver, first_day, last_day):
     # the chosen element by id then it moves to
     # the element and sends data
     wait = WebDriverWait(driver, 10)
-    wait.until(exp_cond.presence_of_all_elements_located((By.ID, 'from')))
+    wait.until(exp_cond.visibility_of_element_located((By.ID, 'from')))
 
     from_date = driver.find_element_by_id('from')
     ActionChains(driver).move_to_element(
@@ -223,59 +222,6 @@ def entry_menu(driver):
     driver.get(options['Time entry'])
 
 
-
-def login(driver, username, password, page_urls):
-    """
-    Void method that inputs username and password for employee console
-
-    :param driver: Current Selenium phantomjs driver instance in use
-    :return: None
-    """
-
-    # If url is webadvisor or Employee Console than next page will be
-    # Webadvisor Login page
-    if 'webadvisor' in driver.current_url or 'intranet' in driver.current_url:
-        try:
-            driver.get(page_urls['Log In'])
-        except KeyError:
-            # Creates dictionary of urls to page tabs
-            driver.get('https://webadvisor.coastal.edu')
-            links = driver.find_elements_by_tag_name('a')
-            for link in links:
-                page_urls[link.text] = link.get_attribute('href')
-            driver.get(page_urls['Log In'])
-
-    try:
-        # Finds input elements for username and password
-        user_name = driver.find_element_by_id('USER_NAME')
-        curr_pwd = driver.find_element_by_id('CURR_PWD')
-        # Sends username and password to form
-        user_name.send_keys(username)
-        curr_pwd.send_keys(password)
-    except NoSuchElementException:
-        pass
-
-    submit(driver)
-
-    response = driver.find_element_by_tag_name('div').text
-    username_warning = 'Username not found'
-    password_warning = 'You entered an invalid password'
-    if username_warning in response:
-        print('Username not found. Please be sure to enter the username in',
-              'all lower case. Please try again.')
-        username = input('Username: ')
-        password = getpass.getpass()  # Defaults to 'Password: '
-        login(driver, username, password, page_urls)
-    if password_warning in response:
-        print('You entered an invalid password. Passwords are case',
-              'sensitive and have at least one upper case',
-              'character, one lower case character and one number if',
-              'created after July 2007. Please try again.')
-        username = input('Username: ')
-        password = getpass.getpass()  # Defaults to 'Password: '
-        login(driver, username, password, page_urls)
-
-
 def submit(driver):
     """
     Hits submit button at current browser page
@@ -317,19 +263,14 @@ if __name__ == '__main__':
         webadvisor = 'https://webadvisor.coastal.edu'
         emp_console = 'https://coastal.edu/scs/employee'
 
-        page_urls = {}  # Dictionary containing page urls
         username = input('Username: ')
         password = getpass.getpass()  # Defaults to 'Password: '
 
         exec_path = ChromeDriver().get_path()
-        WINDOW = "1920,1080"
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--window-size={size}".format(size=WINDOW))
-        driver = webdriver.Chrome(exec_path, chrome_options=chrome_options)
+        driver = webdriver.Chrome(exec_path)
         driver.get(webadvisor)  # Opening Webadvisor homepage
         # Logging in into Webadvisor
-        login(driver, username, password, page_urls)
+        login(driver, username, password)
         emp_menu = get_menu(driver)
         driver.get(emp_menu)
         entry_menu(driver)  # Opening Time Entry menu
@@ -345,7 +286,7 @@ if __name__ == '__main__':
         )
 
         shifts = get_shifts(driver, first_day, last_day)
-        login(driver, username, password, page_urls)  # Logging into Webadvisor
+        login(driver, username, password)  # Logging into Webadvisor
         driver.get(emp_menu)
         entry_menu(driver)  # Opening Time Entry Menu
         fill_timesheet(driver, shifts, last_day)
