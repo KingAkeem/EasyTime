@@ -55,7 +55,6 @@ def get_timesheet(driver):
     # Creates a dictionary of name and url for menu options
     for item in sub_menu:
         emp_options[item.text] = item.get_attribute('href')
-
     # Opening page based on user option eg. 'Time Entry'
     driver.get(emp_options['Time Entry'])
 

@@ -1,10 +1,49 @@
 import getpass
-
+import re
+import pickle
 from selenium.webdriver.support.expected_conditions import (
                             visibility_of_element_located as is_visible)
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+
+
+def get_valid_filename(s):
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '', s)
+
+
+def eat_cookies(driver, website):
+    """Saves cookies to file
+
+    Pickles cookies and saves them to a file to be loaded later.
+
+    Args:
+        driver: driver instance being used
+    """
+
+    web_file = get_valid_filename(website)
+    with open(web_file+'.pkl', 'xb') as cookies_file:
+        pickle.dump(driver.get_cookies(), cookies_file)
+
+
+def load_cookies(driver, website):
+    """Loads saved cookies
+
+    Loads pickled cookies and adds them to the current browser session, then
+    reloads the session with the cookies added.
+
+    Args:
+        driver: driver instance being used
+        website: website to load the cookies for and reload.
+    """
+
+    web_file = get_valid_filename(website)
+    with open(web_file+'.pkl', 'rb') as cookies_file:
+        cookies = pickle.load(cookies_file)
+        for cookie in cookies:
+            driver.add_cookie(cookie)
+    driver.get(website)
 
 
 def submit(driver):

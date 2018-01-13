@@ -6,7 +6,7 @@ import getpass
 import json
 import logging as log
 from helpers.drivers import ChromeDriver
-from helpers.actions import login, submit, get_shifts, get_hours
+from helpers.actions import login, submit, get_shifts, get_hours, load_cookies
 from helpers.timesheet import fill_timesheet, pay_period, get_timesheet
 from selenium import webdriver
 
@@ -27,6 +27,7 @@ def main():
         get_timesheet(driver)
         first_day, last_day = pay_period(driver)
         driver.get(emp_console)  # Opening Employee Console login
+        load_cookies(driver, emp_console)
         shifts = get_shifts(driver, first_day, last_day)
         driver.get(webadvisor)
         get_timesheet(driver)
