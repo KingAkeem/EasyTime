@@ -3,6 +3,7 @@ import getpass
 from selenium.webdriver.support.expected_conditions import (
                             visibility_of_element_located as is_visible)
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 
 
@@ -91,3 +92,97 @@ def login(driver, username, password):
         username = input('Username: ')
         password = getpass.getpass()
         login(driver, username, password)
+
+
+def get_menu(driver):
+    wait_for(driver, 10, 'XWBEM_Bars', By.CLASS_NAME)
+    return driver.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
+
+
+def get_hours(driver):
+    """ Gets hours worked through payperiod
+
+    Args:
+        driver: instance being used
+
+    Returns:
+        str containing hours worked during recent payperiod
+    """
+
+    return driver.find_element_by_id('LIST_VAR2_4').text
+
+
+def get_shifts(driver, first_day, last_day):
+    """Creates data structure of shifts
+
+    Expicitly waits for JavaScript to generate shift content using the days
+    form the payperiod.
+
+    Args:
+        driver: driver instance being used
+        first_day: first day of the payperiod
+        last_day: last day of the payperiod
+
+    Returns:
+        shifts: data strucutre containing shifts
+    """
+
+    shifts = dict()
+
+    # Enlarges window to maximum size
+    driver.maximize_window()
+
+    # Webdriver explicitly waits up until 10 seoncds or when it finds
+    # the chosen element by id then it moves to
+    # the element and sends data
+    wait_for(driver, 600, 'from')
+    from_date = driver.find_element_by_id('from')
+    ActionChains(driver).move_to_element(
+        from_date).click().send_keys(first_day).perform()
+    to_date = driver.find_element_by_id('to')
+    ActionChains(driver).move_to_element(
+        to_date).click().send_keys(last_day).perform()
+    submit(driver)  # Submit dates
+
+    # Waiting for JavaScript text to be generated and then assigning
+    # the text to driver.shifts
+    shifts_text = driver.find_element_by_id('reportContent').text
+
+    # Loops through unformatted text of driver.shifts and puts them into
+    # a dict with list as shifts
+    # Used [1:-1] to ignore header and footer in list from splitting
+    for text in shifts_text.splitlines()[1:-1]:
+        line = text.split()
+        if len(line) == 9:
+            name = line[0] + ' ' + line[1]
+            spec_date = line[2]
+            clock_in = line[3]
+            clock_out = line[5]
+            location = line[6] + ' ' + line[7]
+            hours = line[8]
+
+        if len(line) == 8:
+            name = line[0] + ' ' + line[1]
+            spec_date = line[2]
+            clock_in = line[3]
+            clock_out = line[5]
+            location = line[6]
+            hours = line[7]
+
+        try:
+            shifts[spec_date].append({
+                'Name': name,
+                'Time-In': clock_in,
+                'Time-Out': clock_out,
+                'Location': location,
+                'Hours': hours
+            })
+
+        except KeyError:
+            shifts[spec_date] = [{
+                'Name': name,
+                'Time-In': clock_in,
+                'Time-Out': clock_out,
+                'Location': location,
+                'Hours': hours
+            }]

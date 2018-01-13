@@ -1,5 +1,30 @@
-from .actions import wait_for, submit
-from datetime import date
+from .actions import wait_for, submit, get_menu
+from datetime import date, datetime
+
+
+def pay_period(driver):
+    """Finds first and lates date of most recent payperiod by ID
+    Args:
+     driver: driver instance being used
+
+    Returns:
+     (first_day, last_day): tuple contiaing the first and last day of the
+                            most recent payperiod
+    """
+
+    # First and last day of payperiod
+    first_day = driver.find_element_by_id('DATE_LIST_VAR1_1').text
+    last_day = driver.find_element_by_id('DATE_LIST_VAR2_1').text
+
+    # Making two digit year into four digits eg. 17 -> 2017
+    first_day = first_day[0:6] + '20' + first_day[6:8]
+    last_day = last_day[0:6] + '20' + last_day[6:8]
+
+    # Formatting start date eg. Y-m-d
+    first_day = datetime.strptime(first_day, '%m/%d/%Y').strftime('%Y-%m-%d')
+    last_day = datetime.strptime(last_day, '%m/%d/%Y').strftime('%Y-%m-%d')
+
+    return (first_day, last_day)
 
 
 def write_time(time_in, time_out, curr_date, shifts, index):
@@ -18,6 +43,35 @@ def write_time(time_in, time_out, curr_date, shifts, index):
 
     time_in.send_keys(shifts[curr_date][index]['Time-In'])
     time_out.send_keys(shifts[curr_date][index]['Time-Out'])
+
+
+def get_timesheet(driver):
+    emp_menu = get_menu(driver)
+    driver.get(emp_menu)
+    sub_menu = driver.find_elements_by_class_name('submenu')
+
+    emp_options = {}
+
+    # Creates a dictionary of name and url for menu options
+    for item in sub_menu:
+        emp_options[item.text] = item.get_attribute('href')
+
+    # Opening page based on user option eg. 'Time Entry'
+    driver.get(emp_options['Time Entry'])
+
+    # Finds urls for time entry
+    driver.find_element_by_class_name('left').find_elements_by_tag_name('a')
+
+    # Get's all url for time entry options
+    menu_options = driver.find_elements_by_tag_name('a')
+    options = dict()
+
+    # Stores name and url pairs into dictionary
+    for option in menu_options:
+        options[option.text] = option.get_attribute('href')
+
+    # Opens page of usr chosen option eg. 'Time entry' page
+    driver.get(options['Time entry'])
 
 
 def fill_timesheet(driver, shifts, last_day):
