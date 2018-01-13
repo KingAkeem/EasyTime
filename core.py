@@ -5,17 +5,15 @@ __author__ = 'Akeem King'
 import getpass
 import json
 import logging as log
-from datetime import date, datetime
+from datetime import datetime
 from helpers.drivers import ChromeDriver
-from helpers.actions import login, wait_for
+from helpers.actions import login, wait_for, submit
+from helpers.timesheet import fill_timesheet
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as exp_cond
-from selenium.webdriver.support.wait import WebDriverWait
 
-
+'''
 def fill_timesheet(driver, shifts, last_day):
     """
     Void method that fills timesheet using the first and last date to
@@ -26,8 +24,9 @@ def fill_timesheet(driver, shifts, last_day):
     :param last_date: Last date of the payperiod
     """
 
-    WebDriverWait(driver, 10).until(exp_cond.visibility_of_element_located(
-                                    By.ID, 'LIST_VAR_1'))
+    """WebDriverWait(driver, 10).until(exp_cond.visibility_of_element_located(
+                                    By.ID, 'LIST_VAR_1'))"""
+    wait_for(driver, 10, 'LIST_VAR_1')
     # Clicking box to select most recent payperiod
     driver.find_element_by_id('LIST_VAR1_1').click()
     submit(driver)  # Submitting checked box
@@ -80,6 +79,7 @@ def fill_timesheet(driver, shifts, last_day):
         driver.find_element_by_id('VAR5').click()
     else:
         print('Your timesheet has not been finalized.')
+'''
 
 
 def recent_pay_period(driver):
@@ -126,9 +126,7 @@ def get_shifts(driver, first_day, last_day):
     # Webdriver explicitly waits up until 10 seoncds or when it finds
     # the chosen element by id then it moves to
     # the element and sends data
-    wait = WebDriverWait(driver, 10)
-    wait.until(exp_cond.visibility_of_element_located((By.ID, 'from')))
-
+    wait_for(driver, 600, 'from')
     from_date = driver.find_element_by_id('from')
     ActionChains(driver).move_to_element(
         from_date).click().send_keys(first_day).perform()
@@ -182,6 +180,7 @@ def get_shifts(driver, first_day, last_day):
 
 
 def get_menu(driver):
+    wait_for(driver, 10, 'XWBEM_Bars', By.CLASS_NAME)
     return driver.find_element_by_class_name('XWBEM_Bars').get_attribute('href')
 
 
@@ -193,7 +192,6 @@ def entry_menu(driver):
     :param driver: Current Selenium phantomjs driver instance in use
     :return: URL of chosen option
     """
-
     # Finds all elements of the submenu and creates an empty dictionary to
     # store their name and url
     sub_menu = driver.find_elements_by_class_name('submenu')
@@ -222,41 +220,6 @@ def entry_menu(driver):
     driver.get(options['Time entry'])
 
 
-def submit(driver):
-    """
-    Hits submit button at current browser page
-
-    :param driver: Current Selenium phantomjs driver instance in use
-    :return: None
-    """
-
-    # If url is not webadvisor then use one of these two submit buttons
-    # otherwise use webadvisor submit button
-    if 'webadvisor' not in driver.current_url:
-        try:
-            btn = WebDriverWait(driver, 3).until(
-                exp_cond.visibility_of_element_located((
-                    By.XPATH, "//input[@type='submit' and @value='Submit']")
-                )
-            )
-            btn.click()
-        except (NoSuchElementException, TimeoutException):
-
-            btn = WebDriverWait(driver, 3).until(
-                exp_cond.visibility_of_element_located((
-                    By.XPATH, "//input[@type='button' and @value='Submit']")
-                )
-            )
-            btn.click()
-    else:
-        btn = WebDriverWait(driver, 3).until(
-            exp_cond.visibility_of_element_located((
-                By.XPATH, "//input[@type='submit' and @value='SUBMIT']")
-            )
-        )
-        btn.click()
-
-
 if __name__ == '__main__':
 
     try:
@@ -269,24 +232,14 @@ if __name__ == '__main__':
         exec_path = ChromeDriver().get_path()
         driver = webdriver.Chrome(exec_path)
         driver.get(webadvisor)  # Opening Webadvisor homepage
-        # Logging in into Webadvisor
         login(driver, username, password)
         emp_menu = get_menu(driver)
         driver.get(emp_menu)
         entry_menu(driver)  # Opening Time Entry menu
-
-        # Getting dates from most recent payperiod
         first_day, last_day = recent_pay_period(driver)
-
-        driver.close()
-        driver = webdriver.Chrome(exec_path)
         driver.get(emp_console)  # Opening Employee Console login
-        WebDriverWait(driver, 600).until(
-            exp_cond.presence_of_element_located((By.ID, 'from'))
-        )
-
         shifts = get_shifts(driver, first_day, last_day)
-        login(driver, username, password)  # Logging into Webadvisor
+        driver.get(webadvisor)
         driver.get(emp_menu)
         entry_menu(driver)  # Opening Time Entry Menu
         fill_timesheet(driver, shifts, last_day)
